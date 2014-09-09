@@ -168,12 +168,12 @@ def docstring_func(pyobj):
 
 
 sig_map = [
-    ('basic:Variant', ['ndarray', 'array']),
+    ('basic:Variant', ['ndarray', 'array', 'np.ndarray']),
     ('basic:List', ['list']),
     ('basic:Integer', ['int', 'integer']),
     ('basic:Float', ['float']),
     ('basic:Tuple', ['tuple']),
-    ('basic:Dict', ['dict']),
+    ('basic:Dictionary', ['dict']),
     ('basic:Bool', ['bool']),
     ('basic:String', ['str', 'string'])
 ]
@@ -368,7 +368,7 @@ def gen_module(input_ports, output_ports, docstring,
     return new_class
 
 
-def do_wrap(func_name, module_path, add_input_dict=False, namespace=None):
+def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
     """Perform the wrapping of functions into VisTrails modules
 
     Parameters
@@ -507,7 +507,7 @@ def run():
     ]
     vt_mod_lst = []
     for func in import_list_funcs:
-        vt_mod_lst.append(do_wrap(**func))
+        vt_mod_lst.append(wrap_function(**func))
     return vt_mod_lst
 
 
