@@ -186,7 +186,7 @@ enum_map = [
 ]
 
 
-def get_signature(arg_type):
+def pytype_to_vtsig(arg_type):
     """Transform 'arg_type' into a vistrails port signature
 
     Parameters
@@ -199,15 +199,83 @@ def get_signature(arg_type):
     port_sig : str
         The VisTrails port signature
     """
+    signature = None
+    # bash to lower case
+    arg_type = arg_type.lower()
     for port_sig, pytypes in sig_map:
         if arg_type in pytypes:
-            return port_sig
+            # check for multiple matches
+            if signature is not None:
+                raise ValueError('Your port_type matches at least two VisTrail '
+                                 'port signatures: [{0}] and [{1}]'
+                                 ''.format(signature, port_sig))
+            signature = port_sig
+    if signature is None:
+        # if no arg_type matches the pytypes that relate to VisTrails port sigs
+        # raise a value error
+        raise ValueError("The arg_type doesn't match any of the options.  Your "
+                         "arg_type is: {0}.  See the sig_type dictionary in "
+                         "userpackages/autowrap/wrap_lib.py".format(arg_type))
 
-    # if no arg_type matches the pytypes that relate to VisTrails port sigs
-    # raise a value error
-    raise ValueError("The arg_type doesn't match any of the options.  Your "
-                     "arg_type is: {0}.  See the sig_type dictionary in "
-                     "userpackages/autowrap/wrap_lib.py".format(arg_type))
+    return signature
+
+
+def create_port_params(name, label, port_type, optional=False):
+    """
+    Create the parameter dictionary for an input port.
+
+    The reason why this function exists is to deal with cases where an
+    enum port type is more appropriate.  In the rare cases when we actually
+    want an enum port, this function returns a dictionary that, when unpacked
+    into IPort() creates an enunm port
+
+    Parameters
+    ----------
+    name : str
+        Name of the input port
+    label : str
+        Description of the input port
+    port_type : str
+        Stringly-typed VisTrails type
+    optional : bool
+        Determines whether this port shows up by default
+
+    Returns
+    -------
+    param_dict : dict
+        Dictionary that should be unpacked into IPort() to create a port.
+        Depending on the k,v pairs in param_dict, the port that gets created
+        will be appropriate to `name` and `type`
+    """
+    logger.debug('create_port_params function input parameters: '
+                 'name is {0}\nlabel is {1}\nport_type is {2}\noptional is {3}'
+                 ''.format(name, label, port_type, optional))
+    pdict = {}
+    # stash the easy input parameters
+    pdict['name'] = name
+    pdict['label'] = '/n'.join(label)
+    pdict['optional'] = optional
+    # determine if the input port should be 'regular' or an enum port
+    # check for enum first
+    for enum_type, enum_options in enum_map:
+        if port_type == enum_type:
+            # check for multiple matches
+            if 'signature' in pdict:
+                raise ValueError('Your port_type matches at least two enum '
+                                 'options: [type: {0}, options: {1}] and '
+                                 '[type: {2}, options: {3}]'
+                                 ''.format(pdict['signature'],
+                                           pdict['values'],
+                                           enum_type, enum_options))
+            pdict['signature'] = 'basic:String'
+            pdict['entry_type'] = 'enum'
+            pdict['values'] = enum_options
+
+    if not 'signature' in pdict:
+        # then check for regular
+        pdict['signature'] = pytype_to_vtsig(port_type)
+
+    return pdict
 
 
 def define_input_ports(docstring):
@@ -251,10 +319,13 @@ def define_input_ports(docstring):
                          "".format(the_name, the_type,
                                    '/n'.join(the_description),
                                    optional))
-            input_ports.append(IPort(name=the_name,
-                                     label='/n'.join(the_description),
-                                     signature=get_signature(the_type),
-                                     optional=optional))
+
+            port_param_dict = create_port_params(name=the_name,
+                                                 label=the_description,
+                                                 port_type=the_type,
+                                                 optional=optional)
+            logger.debug('port_param_dict: {0}'.format(port_param_dict))
+            input_ports.append(IPort(**port_param_dict))
     else:
         # raised if 'Parameters' is not in the docstring
         raise KeyError('Docstring is not formatted correctly. There is no '
@@ -287,7 +358,7 @@ def define_output_ports(docstring):
                          "\n\tthe_description is {2}"
                          "".format(the_name, the_type, the_description))
             try:
-                signature = get_signature(the_type)
+                signature = pytype_to_vtsig(the_type)
             except ValueError as ve:
                 logger.error('ValueError raised for Returns parameter with '
                              'name: {0}\n\ttype: {1}\n\tdescription: {2}'
@@ -295,7 +366,7 @@ def define_output_ports(docstring):
                 raise ValueError(ve)
 
             output_ports.append(OPort(name=the_name,
-                                      signature=get_signature(the_type)))
+                                      signature=pytype_to_vtsig(the_type)))
     else:
         # raised if 'Returns' is not in the docstring.
         # This should probably just create an empty list if there is no
@@ -421,6 +492,7 @@ def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
     try:
         # create the VisTrails input ports
         input_ports = define_input_ports(doc._parsed_data)
+        pprint.pprint(input_ports)
     except ValueError as ve:
         logger.error('ValueError raised in attempt to format input_ports'
                      ' in function: {0} in module: {1}'
@@ -460,7 +532,7 @@ def run():
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.DEBUG)
     logger.addHandler(ch)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     # perform the automagic wrapping
     import_list_funcs = [
         {'func_name': 'grid3d',
@@ -470,6 +542,7 @@ def run():
         {'func_name': 'process_to_q',
          'module_path': 'nsls2.recip',
          'add_input_dict': True,
+
          'namespace': 'recip'},
         # {'func_name': 'bin_1D',
         #  'module_path': 'nsls2.core',
@@ -494,8 +567,8 @@ def run():
         #  'module_path': 'nsls2.fitting.model.physics_peak'},
         # {'func_name': 'compton_peak',
         #  'module_path': 'nsls2.fitting.model.physics_peak'},
-        # {'func_name': 'read_binary',
-        #  'module_path': 'nsls2.io.binary'},
+        {'func_name': 'read_binary',
+        'module_path': 'nsls2.io.binary'},
         # {'func_name': 'fit_quad_to_peak',
         #  'module_path': 'nsls2.spectroscopy'},
         # {'func_name': 'align_and_scale',
