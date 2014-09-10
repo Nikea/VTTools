@@ -248,9 +248,11 @@ def define_input_ports(docstring):
 
             logger.debug("the_name is {0}. \n\tthe_type is {1} and it is "
                          "optional: {3}. \n\tthe_description is {2}"
-                         "".format(the_name, the_type, the_description,
+                         "".format(the_name, the_type,
+                                   '/n'.join(the_description),
                                    optional))
-            input_ports.append(IPort(name=the_name, label=the_description,
+            input_ports.append(IPort(name=the_name,
+                                     label='/n'.join(the_description),
                                      signature=get_signature(the_type),
                                      optional=optional))
     else:
