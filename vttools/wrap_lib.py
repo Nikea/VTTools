@@ -33,23 +33,22 @@
 # POSSIBILITY OF SUCH DAMAGE.                                          #
 ########################################################################
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
 import six
-from numpydoc.docscrape import FunctionDoc, ClassDoc, NumpyDocString
 import inspect
 import importlib
-import os
 import pprint
 import time
 import sys
-from vistrails.core.modules.vistrails_module import (Module,
-                                                     ModuleSettings,
+import logging
+
+from numpydoc.docscrape import FunctionDoc, ClassDoc
+from vistrails.core.modules.vistrails_module import (Module, ModuleSettings,
                                                      ModuleError)
 from vistrails.core.modules.config import IPort, OPort
 import numpy as np
-from collections import namedtuple
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -250,11 +249,8 @@ def create_port_params(name, label, port_type, optional=False):
     logger.debug('create_port_params function input parameters: '
                  'name is {0}\nlabel is {1}\nport_type is {2}\noptional is {3}'
                  ''.format(name, label, port_type, optional))
-    pdict = {}
     # stash the easy input parameters
-    pdict['name'] = name
-    pdict['label'] = '/n'.join(label)
-    pdict['optional'] = optional
+    pdict = {'name': name, 'label': '/n'.join(label), 'optional': optional}
     # determine if the input port should be 'regular' or an enum port
     # check for enum first
     for enum_type, enum_options in enum_map:
@@ -272,7 +268,7 @@ def create_port_params(name, label, port_type, optional=False):
             pdict['values'] = enum_options
 
     if not 'signature' in pdict:
-        # then check for regular
+        # then check for the port_type in the regular VisTrails signatures
         pdict['signature'] = pytype_to_vtsig(port_type)
 
     return pdict
@@ -421,7 +417,7 @@ def gen_module(input_ports, output_ports, docstring,
                                  'and the input dictionary is either not '
                                  'present or doesn\'t contain this key'
                                  ''.format(mand))
-                    raise ModuleError(me)
+                    raise ModuleError(__name__, me)
 
         ret = library_func(**params_dict)
 
