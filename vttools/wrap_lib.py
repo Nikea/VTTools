@@ -189,8 +189,10 @@ def pytype_to_vtsig(param_type, param_name):
 
     Parameters
     ----------
-    arg_type : type
+    param_type : str
         The type of the parameter from the library function to be wrapped
+    param_name : str
+        The name of the parameter from the library function to be wrapped
 
     Returns
     -------
