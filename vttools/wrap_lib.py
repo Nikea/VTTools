@@ -239,7 +239,7 @@ def create_port_params(port_name, port_label, port_type, wrapped_func,
     port_type : str
         Stringly-typed VisTrails type
     wrapped_func : function
-        The python function to be wrepped
+        The python function to be wrapped
     optional : bool
         Determines whether this port shows up by default
 
