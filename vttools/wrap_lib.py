@@ -166,16 +166,21 @@ def docstring_func(pyobj):
                          "type(pyobj)".format(type(pyobj)))
 
 
-sig_map = [
-    ('basic:Variant', ['ndarray', 'array', 'np.ndarray']),
-    ('basic:List', ['list']),
-    ('basic:Integer', ['int', 'integer']),
-    ('basic:Float', ['float']),
-    ('basic:Tuple', ['tuple']),
-    ('basic:Dictionary', ['dict']),
-    ('basic:Bool', ['bool']),
-    ('basic:String', ['str', 'string', 'numpy.dtype', '']),
-]
+sig_map = {
+    'ndarray': 'basic:Variant',
+    'array': 'basic:Variant',
+    'np.ndarray': 'basic:Variant',
+    'list': 'basic:List',
+    'int': 'basic:Integer',
+    'integer': 'basic:Integer',
+    'float': 'basic:Float',
+    'tuple': 'basic:Tuple',
+    'dict': 'basic:Dictionary',
+    'bool': 'basic:Bool',
+    'str': 'basic:String',
+    'string': 'basic:String',
+    'numpy.dtype': 'basic:String',
+}
 
 
 def pytype_to_vtsig(arg_type):
@@ -194,14 +199,14 @@ def pytype_to_vtsig(arg_type):
     signature = None
     # bash to lower case
     arg_type = arg_type.lower()
-    for port_sig, pytypes in sig_map:
-        if arg_type in pytypes:
-            # check for multiple matches
-            if signature is not None:
-                raise ValueError('Your port_type matches at least two VisTrail '
-                                 'port signatures: [{0}] and [{1}]'
-                                 ''.format(signature, port_sig))
-            signature = port_sig
+    if arg_type in sig_map:
+        port_sig = sig_map[arg_type]
+        # check for multiple matches
+        if signature is not None:
+            raise ValueError('Your port_type matches at least two VisTrail '
+                             'port signatures: [{0}] and [{1}]'
+                             ''.format(signature, port_sig))
+        signature = port_sig
     if signature is None:
         # if no arg_type matches the pytypes that relate to VisTrails port sigs
         # raise a value error
