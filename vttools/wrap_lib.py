@@ -174,14 +174,7 @@ sig_map = [
     ('basic:Tuple', ['tuple']),
     ('basic:Dictionary', ['dict']),
     ('basic:Bool', ['bool']),
-    ('basic:String', ['str', 'string'])
-]
-
-
-enum_map = [
-    ('numpy.dtype', [np.intc, np.intp, np.int8, np.int16, np.int32, np.int64,
-                     np.uint8, np.uint16, np.uint64, np.float16, np.float32,
-                     np.float64, np.complex64, np.complex128]),
+    ('basic:String', ['str', 'string', 'numpy.dtype', '']),
 ]
 
 
@@ -219,7 +212,7 @@ def pytype_to_vtsig(arg_type):
     return signature
 
 
-def create_port_params(name, label, port_type, optional=False):
+def create_port_params(name, label, port_type, func, optional=False):
     """
     Create the parameter dictionary for an input port.
 
@@ -236,6 +229,8 @@ def create_port_params(name, label, port_type, optional=False):
         Description of the input port
     port_type : str
         Stringly-typed VisTrails type
+    func : function
+        The python function to be wrepped
     optional : bool
         Determines whether this port shows up by default
 
@@ -250,37 +245,28 @@ def create_port_params(name, label, port_type, optional=False):
                  'name is {0}\nlabel is {1}\nport_type is {2}\noptional is {3}'
                  ''.format(name, label, port_type, optional))
     # stash the easy input parameters
-    pdict = {'name': name, 'label': '/n'.join(label), 'optional': optional}
-    # determine if the input port should be 'regular' or an enum port
-    # check for enum first
-    for enum_type, enum_options in enum_map:
-        if port_type == enum_type:
-            # check for multiple matches
-            if 'signature' in pdict:
-                raise ValueError('Your port_type matches at least two enum '
-                                 'options: [type: {0}, options: {1}] and '
-                                 '[type: {2}, options: {3}]'
-                                 ''.format(pdict['signature'],
-                                           pdict['values'],
-                                           enum_type, enum_options))
-            pdict['signature'] = 'basic:String'
-            pdict['entry_type'] = 'enum'
-            pdict['values'] = enum_options
+    pdict = {'name': name, 'label': '/n'.join(label), 'optional': optional,
+             'signature': pytype_to_vtsig(port_type)}
 
-    if not 'signature' in pdict:
-        # then check for the port_type in the regular VisTrails signatures
-        pdict['signature'] = pytype_to_vtsig(port_type)
+    if hasattr(func, name):
+        #todo for enums I'm not sure if the VisTrails port signature has to be 'string'
+        # pdict['signature'] = pytype_to_vtsig(port_type)
+        pdict['entry_type'] = 'enum'
+        pdict['values'] = getattr(func, name)
 
     return pdict
 
 
-def define_input_ports(docstring):
+def define_input_ports(docstring, func):
     """Turn the 'Parameters' fields into VisTrails input ports
 
     Parameters
     ----------
     docstring : NumpyDocString
         The scraped docstring from the
+
+    func : function
+        The actual python function
 
     Returns
     -------
@@ -319,7 +305,8 @@ def define_input_ports(docstring):
             port_param_dict = create_port_params(name=the_name,
                                                  label=the_description,
                                                  port_type=the_type,
-                                                 optional=optional)
+                                                 optional=optional,
+                                                 func=func)
             logger.debug('port_param_dict: {0}'.format(port_param_dict))
             input_ports.append(IPort(**port_param_dict))
     else:
@@ -396,15 +383,21 @@ def gen_module(input_ports, output_ports, docstring,
             mandatory.append(port.name)
 
     def compute(self):
+        dict_from_port = {}
         params_dict = {}
         if dict_port is not None:
-            params_dict = self.get_input(dict_port.name)
+            dict_from_port = self.get_input(dict_port.name)
 
         for opt in optional:
+            if opt in dict_from_port:
+                # obtain the parameter from the passed in dict
+                params_dict[opt] = dict_from_port[opt]
             if self.has_input(opt):
                 params_dict[opt] = self.get_input(opt)
 
         for mand in mandatory:
+            if mand in dict_from_port:
+                params_dict[mand] = dict_from_port[mand]
             try:
                 params_dict[mand] = self.get_input(mand)
             except ModuleError as me:
@@ -487,7 +480,7 @@ def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
         raise ValueError(ve)
     try:
         # create the VisTrails input ports
-        input_ports = define_input_ports(doc._parsed_data)
+        input_ports = define_input_ports(doc._parsed_data, func)
         pprint.pprint(input_ports)
     except ValueError as ve:
         logger.error('ValueError raised in attempt to format input_ports'
