@@ -42,7 +42,6 @@ import pprint
 import time
 import sys
 import logging
-
 from numpydoc.docscrape import FunctionDoc, ClassDoc
 from vistrails.core.modules.vistrails_module import (Module, ModuleSettings,
                                                      ModuleError)
@@ -180,10 +179,12 @@ sig_map = {
     'str': 'basic:String',
     'string': 'basic:String',
     'numpy.dtype': 'basic:String',
+    'np.dtype': 'basic:String',
+    'dtype': 'basic:String',
 }
 
 
-def pytype_to_vtsig(arg_type):
+def pytype_to_vtsig(param_type, param_name):
     """Transform 'arg_type' into a vistrails port signature
 
     Parameters
@@ -196,28 +197,29 @@ def pytype_to_vtsig(arg_type):
     port_sig : str
         The VisTrails port signature
     """
-    signature = None
+    port_sig = None
     # bash to lower case
-    arg_type = arg_type.lower()
-    if arg_type in sig_map:
-        port_sig = sig_map[arg_type]
-        # check for multiple matches
-        if signature is not None:
-            raise ValueError('Your port_type matches at least two VisTrail '
-                             'port signatures: [{0}] and [{1}]'
-                             ''.format(signature, port_sig))
-        signature = port_sig
-    if signature is None:
+    param_name = param_name.lower()
+    param_type = param_type.lower()
+    # see if special handling needs to occur because of the parameter name
+    if param_name in sig_map:
+        port_sig = sig_map[param_name]
+    # if no special handling is required then create a port based on the
+    # parameter type
+    elif param_type in sig_map:
+        port_sig = sig_map[param_type]
+    if port_sig is None:
         # if no arg_type matches the pytypes that relate to VisTrails port sigs
         # raise a value error
         raise ValueError("The arg_type doesn't match any of the options.  Your "
                          "arg_type is: {0}.  See the sig_type dictionary in "
-                         "userpackages/autowrap/wrap_lib.py".format(arg_type))
+                         "userpackages/autowrap/wrap_lib.py".format(param_type))
 
-    return signature
+    return port_sig
 
 
-def create_port_params(name, label, port_type, func, optional=False):
+def create_port_params(port_name, port_label, port_type, wrapped_func,
+                       optional=False):
     """
     Create the parameter dictionary for an input port.
 
@@ -228,13 +230,13 @@ def create_port_params(name, label, port_type, func, optional=False):
 
     Parameters
     ----------
-    name : str
+    port_name : str
         Name of the input port
-    label : str
+    port_label : str
         Description of the input port
     port_type : str
         Stringly-typed VisTrails type
-    func : function
+    wrapped_func : function
         The python function to be wrepped
     optional : bool
         Determines whether this port shows up by default
@@ -248,16 +250,18 @@ def create_port_params(name, label, port_type, func, optional=False):
     """
     logger.debug('create_port_params function input parameters: '
                  'name is {0}\nlabel is {1}\nport_type is {2}\noptional is {3}'
-                 ''.format(name, label, port_type, optional))
+                 ''.format(port_name, port_label, port_type, optional))
     # stash the easy input parameters
-    pdict = {'name': name, 'label': '/n'.join(label), 'optional': optional,
-             'signature': pytype_to_vtsig(port_type)}
+    pdict = {'name': port_name, 'label': '/n'.join(port_label),
+             'optional': optional,
+             'signature': pytype_to_vtsig(param_type=port_type,
+                                          param_name=port_name)}
 
-    if hasattr(func, name):
+    if hasattr(wrapped_func, port_name):
         #todo for enums I'm not sure if the VisTrails port signature has to be 'string'
         # pdict['signature'] = pytype_to_vtsig(port_type)
         pdict['entry_type'] = 'enum'
-        pdict['values'] = getattr(func, name)
+        pdict['values'] = getattr(wrapped_func, port_name)
 
     return pdict
 
@@ -307,11 +311,11 @@ def define_input_ports(docstring, func):
                                    '/n'.join(the_description),
                                    optional))
 
-            port_param_dict = create_port_params(name=the_name,
-                                                 label=the_description,
+            port_param_dict = create_port_params(port_name=the_name,
+                                                 port_label=the_description,
                                                  port_type=the_type,
                                                  optional=optional,
-                                                 func=func)
+                                                 wrapped_func=func)
             logger.debug('port_param_dict: {0}'.format(port_param_dict))
             input_ports.append(IPort(**port_param_dict))
     else:
@@ -346,7 +350,8 @@ def define_output_ports(docstring):
                          "\n\tthe_description is {2}"
                          "".format(the_name, the_type, the_description))
             try:
-                signature = pytype_to_vtsig(the_type)
+                signature = pytype_to_vtsig(param_type=the_type,
+                                            param_name=the_name)
             except ValueError as ve:
                 logger.error('ValueError raised for Returns parameter with '
                              'name: {0}\n\ttype: {1}\n\tdescription: {2}'
@@ -354,7 +359,9 @@ def define_output_ports(docstring):
                 raise ValueError(ve)
 
             output_ports.append(OPort(name=the_name,
-                                      signature=pytype_to_vtsig(the_type)))
+                                      signature=pytype_to_vtsig(
+                                          param_type=the_type,
+                                          param_name=the_name)))
     else:
         # raised if 'Returns' is not in the docstring.
         # This should probably just create an empty list if there is no
