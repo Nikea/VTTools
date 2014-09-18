@@ -10,6 +10,7 @@ setup(
     version='0.0.x',
     author='Brookhaven National Lab',
     packages=["vttools",
+              'vttools.vtmods'
               ],
     include_dirs=[np.get_include()],
     ext_modules=ext_modules
