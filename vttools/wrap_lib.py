@@ -55,12 +55,7 @@ class AutowrapError(Exception):
     '''Exception to flag an autowrapping error
 
     '''
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
+    pass
 
 def obj_src(py_obj, escape_docstring=True):
     """Get the source for the python object that gets passed in
