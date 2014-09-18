@@ -42,6 +42,7 @@ from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import Module, ModuleSettings
 from vistrails.core.modules.config import IPort, OPort
 import numpy as np
+from ..wrap_lib import obj_src
 from vttools.wrap_lib import sig_map
 import logging
 logger = logging.getLogger(__name__)
@@ -128,90 +129,16 @@ class CalibrationParameters(Module):
 
 
 class Listify(Module):
-    """
-    Turn the run header from the data broker into a list of data
+    src = "Cannot display wrapped source code as it was not found."
+    try:
+        src = obj_src(listify)
+    except IOError as ie:
+        print('original source cannot be found for Listify')
 
-    metadataStore.analysisapi.listify source:
+    __doc__ = ('Transpose the run header events into data lists\n\n'
+               'source for wrapped function '
+               'metadataStore.analysisapi.commands:listify:\n\n' + src)
 
-        def listify(run_header, data_keys=None, bash_to_lower=True):
-        \"""Transpose the events into lists
-
-        from this:
-        run_header : {
-            "event_0_data" : {"key1": "val1", "key2": "val2", ...},
-            "event_1_data" : {"key1": "val1", "key2": "val2", ...},
-            ...
-            }
-
-        to this:
-        {"key1": [val1, val2, ...],
-         "key2" = [val1, val2, ...],
-         "keyN" = [val1, val2, ...],
-         "time" = [time1, time2, ...],
-        }
-
-        Parameters
-        ----------
-        run_header : dict
-            Run header to convert events to lists
-        event_descriptors_key : str
-            Name of the event_descriptor
-        data_keys : hashable or list, optional
-            - If data_key is a valid key for an event_data entry,
-              turn that event_data into a list
-            - If data_key is a list of valid keys for event_data
-              entries, turn those event_data keys into lists
-            - If data_key is None, turn all event data keys into
-              lists
-        bash_to_lower : boolean
-            True: Compare strings after casting to lowercase
-            False: Compare strings without casting to lowercase
-
-        Returns
-        -------
-        dict
-            data is keyed on run header data keys with an extra field 'time'
-        \"""
-        # get the keys from the run header
-        header_keys = get_data_keys(run_header)
-        if len(header_keys) == 1:
-            # turn it in to a list
-            header_keys = [header_keys]
-        # set defaults if necessary
-        if data_keys is None:
-            data_keys = header_keys
-
-        try:
-            # check for data_keys being iterable
-            data_keys.__iter__()
-        except AttributeError:
-            # turn data_keys in to a list
-            data_keys = [data_keys]
-
-        if not 'time' in data_keys:
-            data_keys.append('time')
-        # print('data_keys: {0}'.format(data_keys))
-        # forcibly cast to lower case
-        if bash_to_lower:
-            data_keys, header_keys = [[k.lower() for k in key_tmp] for
-                                      key_tmp in (data_keys, header_keys)]
-
-        # listify the data in the run header
-        data_dict = defaultdict(list)
-        # print('data_dict keys: {0}'.format(list(data_dict)))
-        for ev_desc_key, ev_desc_dict in \
-                six.iteritems(run_header['event_descriptors']):
-            data_key = list(ev_desc_dict['events'])
-            # data_key.sort(key=lambda x: int(x.split("_")[-1]))
-            # print("sorted data keys: {0}".format(data_key))
-            for index, (ev_key) in enumerate(data_key):
-                ev_dict = ev_desc_dict['events'][ev_key]
-                for data_key, data in six.iteritems(ev_dict['data']):
-                    if data_key in data_keys:
-                        data_dict[data_key].append(data)
-
-        return data_dict
-    """
     _settings = ModuleSettings(namespace="broker")
 
     _input_ports = [
