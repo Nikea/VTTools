@@ -51,6 +51,12 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+class AutowrapError(Exception):
+    '''Exception to flag an autowrapping error
+
+    '''
+    pass
+
 def obj_src(py_obj, escape_docstring=True):
     """Get the source for the python object that gets passed in
 
@@ -498,26 +504,27 @@ def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
         # get the docstring of the function
         doc = docstring_func(func)
     except ValueError as ve:
-        logger.debug("ValueError raised when attempting to get docstring "
-                     "for function {0}".format(func))
-        raise ValueError(ve)
+        err = ("ValueError raised when attempting to get docstring for "
+               "function {0}\nOriginal error was: {1}").format(func, ve)
+        logger.error(err)
+        six.reraise(AutowrapError, err, sys.exc_info()[2])
     try:
         # create the VisTrails input ports
         input_ports = define_input_ports(doc._parsed_data, func)
         pprint.pprint(input_ports)
     except ValueError as ve:
-        logger.error('ValueError raised in attempt to format input_ports'
-                     ' in function: {0} in module: {1}'
-                     ''.format(func_name, module_path))
-        raise ValueError(ve)
+        err = ("ValueError raised when attempting to format input_ports in "
+               "function {0}\nOriginal error was: {1}").format(func, ve)
+        logger.error(err)
+        six.reraise(AutowrapError, err, sys.exc_info()[2])
     try:
         # create the VisTrails output ports
         output_ports = define_output_ports(doc._parsed_data)
     except ValueError as ve:
-        logger.error('ValueError raised in attempt to format output_ports'
-                     ' in function: {0} in module: {1}'
-                     ''.format(func_name, module_path))
-        raise ValueError(ve)
+        err = ("ValueError raised when attempting to format output_ports in "
+               "function {0}\nOriginal error was: {1}").format(func, ve)
+        logger.error(err)
+        six.reraise(AutowrapError, err, sys.exc_info()[2])
     if add_input_dict:
         # define a dictionary input port if necessary
         dict_port = IPort(name='input_dict', signature=('basic:Dictionary'),
