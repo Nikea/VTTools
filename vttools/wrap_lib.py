@@ -540,5 +540,9 @@ def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
     return generated_module
 
 
+def wrap_class(class_name, module_path, add_input_dict=False, namespace=None):
+    raise NotImplementedError("wrap_class is not implemented yet. "
+                              "Go yell at Eric...")
+
 if __name__ == "__main__":
     pass
