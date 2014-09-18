@@ -327,9 +327,7 @@ class Crop2D(Module):
         if self.has_input('bottom_right_row'):
             p2r = self.get_input('bottom_right_row')
 
-        for r in range(p1r, p2r):
-            for c in range(p1c, p2c):
-                im[r][c] = True
+        im[p1r:p2r, p1c:p2c] = True
 
         self.set_output('bin_mask', im)
 
