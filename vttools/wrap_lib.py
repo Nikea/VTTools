@@ -425,11 +425,20 @@ def gen_module(input_ports, output_ports, docstring,
                                  'present or doesn\'t contain this key'
                                  ''.format(mand))
                     raise ModuleError(__name__, me)
+        # check for the presence of a 'value' attribute on the incoming
+        # port values. This indicates that this is a NSLS2 port type
+        for name, val in six.iteritems(params_dict):
+            print('name [{0}] has attribute value [{1}]'.format(name, val))
+            if hasattr(val, 'value'):
+                print('name [{0}] has attribute value [{1}]'.format(name, val))
+                params_dict[name] = val.value
 
         ret = library_func(**params_dict)
-
-        for (out_port, ret_val) in zip(output_ports, ret):
-            self.set_output(out_port.name, ret_val)
+        if len(output_ports) == 1:
+            self.set_output(output_ports[0].name, ret)
+        else:
+            for (out_port, ret_val) in zip(output_ports, ret):
+                self.set_output(out_port.name, ret_val)
 
     _settings = ModuleSettings(namespace=module_namespace)
 
