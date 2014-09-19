@@ -483,7 +483,7 @@ def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
     namespace_seps = ['.']
     vt_sep = '|'
     if namespace is None:
-        namespace = '|'.join(module_path.split('.')[1:])
+        namespace = vt_sep.join(module_path.split('.')[1:])
         if not namespace:
             namespace = module_path
     elif vt_sep in namespace:
