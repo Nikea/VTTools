@@ -477,11 +477,27 @@ def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
         Path to the function in VisTrails.  This should be a string separated
         by vertical bars: |.  Example: 'vis|test' will put the new VisTrail
         module at the end of expandable lists vis -> test -> func_name
+        currently supports separations by '|' and '.'
     """
+    # list common separators for the namespace argument
+    namespace_seps = ['.']
+    vt_sep = '|'
     if namespace is None:
         namespace = '|'.join(module_path.split('.')[1:])
         if not namespace:
             namespace = module_path
+    elif vt_sep in namespace:
+        # do nothing, namespace is correctly formatted, yay!
+        pass
+    else:
+        # loop over the namespace separators
+        for sep in namespace_seps:
+            # check for the presence of sep in the namespace input parameter
+            if sep in namespace:
+                # split the namespace so that it is separated by vertical bars
+                namespace = vt_sep.join(module_path.split(sep))
+                # dont let it iterate again
+                break
 
     logger.debug('func_name {0} has import path {1} and should be placed in'
                  ' namespace {3}. It should include an '
