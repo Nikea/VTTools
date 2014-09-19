@@ -181,7 +181,7 @@ sig_map = {
     'float': 'basic:Float',
     'tuple': 'basic:Tuple',
     'dict': 'basic:Dictionary',
-    'bool': 'basic:Bool',
+    'bool': 'basic:Boolean',
     'str': 'basic:String',
     'string': 'basic:String',
     'numpy.dtype': 'basic:String',
