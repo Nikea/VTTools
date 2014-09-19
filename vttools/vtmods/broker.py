@@ -42,8 +42,7 @@ from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import Module, ModuleSettings
 from vistrails.core.modules.config import IPort, OPort
 import numpy as np
-from ..wrap_lib import obj_src
-from vttools.wrap_lib import sig_map
+from ..wrap_lib import sig_map, obj_src, docstring_func
 import logging
 logger = logging.getLogger(__name__)
 
@@ -132,12 +131,20 @@ class Listify(Module):
     src = "Cannot display wrapped source code as it was not found."
     try:
         src = obj_src(listify)
-    except IOError as ie:
-        print('original source cannot be found for Listify')
+        doc = ('source for wrapped function '
+               'metadataStore.analysisapi.commands:listify:\n\n' +
+               six.text_type(src.__str__()))
 
-    __doc__ = ('Transpose the run header events into data lists\n\n'
-               'source for wrapped function '
-               'metadataStore.analysisapi.commands:listify:\n\n' + src)
+    except IOError as ie:
+        msg = 'original source cannot be found for Listify'
+        logger.debug(msg)
+        print(msg)
+        src = docstring_func(listify)
+        doc = ('docstring for wrapped function '
+               'metadataStore.analysisapi.commands:listify:\n\n' +
+               six.text_type(src.__str__()))
+
+    __doc__ = ('Transpose the run header events into data lists\n\n' + doc)
 
     _settings = ModuleSettings(namespace="broker")
 
