@@ -44,18 +44,14 @@ import yaml
 import importlib
 import collections
 import os
-from vttools import wrap_lib, load_config
+from vttools import wrap_lib
+from vttools.vtmods.import_lists import load_config
 from vttools.wrap_lib import AutowrapError
 logger = logging.getLogger(__name__)
 
-asd
-# read yaml modules
-with open(os.path.join((os.path.dirname(os.path.realpath(__file__))),
-                       'modules.yaml'), 'r') as modules:
-    import_dict = yaml.load(modules)
-    print('import_dict: {0}'.format(import_dict))
+# get modules to import
+import_dict = load_config()
 
-import_dict = vttools.load_config()
 
 def get_modules():
     # set defaults
