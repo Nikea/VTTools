@@ -1,0 +1,45 @@
+---
+# there are two possible keys:
+#  - 'import' are for python modules that have a
+#     _vistrails_modules() function within them
+#  - 'autowrap_func' are for python functions
+#     that should be wrapped into vistrails
+#  - 'autowrap_class' are for python classes
+#     that should be wrapped into vistrails
+
+# list of modules to import
+import_modules:
+    vttools.vtmods:
+        - .io
+        - .vis
+        - .utils
+        - .broker
+
+# list of functions to autowrap
+autowrap_func:
+- func_name: grid3d
+  module_path: nsls2.core
+  namespace: core
+- func_name: process_to_q
+  module_path: nsls2.recip
+  namespace: recip
+  add_input_dict: true
+- func_name: bin_1D
+  module_path: nsls2.core
+  namespace: core
+- func_name: read_binary
+  module_path: nsls2.io.binary
+  namespace: io
+
+#- {func_name: emission_line_search, module_path: nsls2.constants,  namespace: core, add_input_dict: true}
+#- {func_name: snip_method, module_path: nsls2.fitting.model.background,namespace: core, add_input_dict: true}
+#- {func_name: gauss_peak, module_path: nsls2.fitting.model.physics_peak, namespace:core, add_input_dict: true}
+#- {func_name: gauss_step, module_path: nsls2.fitting.model.physics_peak}
+#- {func_name: gauss_tail, module_path: nsls2.fitting.model.physics_peak}
+#- {func_name: elastic_peak, module_path: nsls2.fitting.model.physics_peak}
+#- {func_name: compton_peak, module_path: nsls2.fitting.model.physics_peak}
+#- {func_name: fit_quad_to_peak, module_path: nsls2.spectroscopy}
+#- {func_name: align_and_scale, module_path: nsls2.spectroscopy}
+#- {func_name: find_largest_peak, module_path: nsls2.spectroscopy}
+#- {func_name: integrate_ROI_spectrum, module_path: nsls2.spectroscopy}
+#- {func_name: integrate_ROI, module_path: nsls2.spectroscopy}
