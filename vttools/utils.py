@@ -43,7 +43,9 @@ from sys import platform as _platform
 from subprocess import call
 
 
-# function to get user input for file deletion
+# function to get user input (yes/no) on a question
+# function was found: http://code.activestate.com/recipes/577058/
+# and is available under the MIT license
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
 
