@@ -79,61 +79,44 @@ def query_yes_no(question, default="yes"):
                              "(or 'y' or 'n').\n")
 
 
-def make_symlink(dst, src):
-    # todo check for the presence of ~/.vistrails/userpackages
-    # clear out any existing stuff in the userpackages/NSLS-II folder
-    """
+def make_symlink(dst, src, silently_move=False):
+    """Helper function used to make symlinks.
+
+    Will delete existing folder/file/folder tree in the destination location
+
+    Parameters
+    ----------
+    dst : str
+        Destination for symlink
+    src : str
+        Source for symlink
+    silently_destroy : bool, optional
+        False: Prompt user if they would like to remove a file or file tree if
+               one is found at 'dst'
+        True: Silently delete folder tree or file if it is found at 'dst'
+
+    Returns
+    -------
+    success : bool
+        Flag denoting the success or failure of the symlink creation
+
+    Note
+    ----
     turns out that you can't check for the presence of symlinks in windows at all.
     http://stackoverflow.com/questions/15258506/os-path-islink-on-windows
     -with-python
     """
-
-    # from subprocess import call
-    if os.path.islink(dst):
-        # unlink it
-        os.unlink(dst)
-        print('unlinked: {0}'.format(dst))
-    elif _platform == 'win32':
-        # you're on windows and os.path.islink alwasys reports False in py2.7
-        # http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
-        # assume that this is a symbolic link
-        ret = call(['rmdir', dst], shell=True)
-        if ret == 0:
-            # NSLS-II was an empty directory or a symlink
-            print('NSLS-II was present as an empty directory or a symlink and '
-                  'was successfully deleted from {0}'.format(dst))
-        if ret == 267 and query_yes_no('Delete the file: {0}?'.format(dst)):
-            # 'NSLS-II' is a file
-            call(['del', dst], shell=True)
-            print('NSLS-II was present as a file and removed from {0}'
-                  ''.format(dst))
-        elif ret == 145:
-            # 'NSLS-II' is not a symlink. os.path.isdir will remove it
-            print('NSLS-II is a directory and is not empty. It will be removed '
-                  'by os.path.rmtree({0})'.format(dst))
-            pass
-    # check to see if the folder is still there after attempts
-    # to unlink it in linux/mac environs or remove it on windows
-    if (os.path.isdir(dst) and
-            query_yes_no('Delete the non-empty folder: {0}?'.format(dst))):
-        # remove it
-        try:
-            shutil.rmtree(dst)
-            print("Successfully rmtree'd: {0}".format(dst))
-        except WindowsError as whee:
-            # you're on windows and os.path.islink alwasys reports False in
-            # py2.7 according to stack overflow, which we know is always correct
-            # http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
-            call(['rmdir', dst], shell=True)
-            print("Successfully rmdir'd: {0}".format(dst))
-    elif (os.path.isfile(dst) and
-          query_yes_no('Delete the file: {0}?'.format(dst))):
-        # remove it
-        os.remove(dst)
-        print("Successfully os.remove'd: {0}".format(dst))
+    # get a temporary directory
+    if silently_move or (((os.path.isfile(dst) or (os.path.isdir(dst)) and
+                           query_yes_no('Move NSLS-II from userpackages?')))):
+        import tempfile
+        temp_dir = tempfile.mkdtemp()
+        shutil.move(dst, temp_dir)
+        print('Previous NSLS-II folder moved to {0}'.format(temp_dir))
     else:
-        # the file probably doesn't exist
-        pass
+        print('NSLS-II already exists in userpackages. Please move or delete it'
+              'and then re-run setup.py')
+        return False
 
     # this symlink does not get removed when pip uninstall vttools is run...
     # todo figure out how to make pip uninstall remove this symlink
@@ -143,3 +126,5 @@ def make_symlink(dst, src):
     except AttributeError as ae:
         # you must be on Windows!
         call(['mklink', '/j', dst, src], shell=True)
+
+    return True
