@@ -59,9 +59,11 @@ def load_config(yaml_file=None):
         Dictionary describing the functions/classes/Modules that should be
         available in VisTrails
     """
+    if yaml_file is None:
+        yaml_file = os.path.join((os.path.dirname(os.path.realpath(__file__))),
+                                 'modules.yaml')
     # read yaml modules
-    with open(os.path.join((os.path.dirname(os.path.realpath(__file__))),
-                           'modules.yaml'), 'r') as modules:
+    with open(yaml_file, 'r') as modules:
         import_dict = yaml.load(modules)
         print('import_dict: {0}'.format(import_dict))
         return import_dict
