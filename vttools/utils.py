@@ -107,16 +107,17 @@ def make_symlink(dst, src, silently_move=False):
     -with-python
     """
     # get a temporary directory
-    if silently_move or (((os.path.isfile(dst) or (os.path.isdir(dst)) and
-                           query_yes_no('Move NSLS-II from userpackages?')))):
-        import tempfile
-        temp_dir = tempfile.mkdtemp()
-        shutil.move(dst, temp_dir)
-        print('Previous NSLS-II folder moved to {0}'.format(temp_dir))
-    else:
-        print('NSLS-II already exists in userpackages. Please move or delete it'
-              'and then re-run setup.py')
-        return False
+    if os.path.exists(dst):
+        if silently_move or (((os.path.isfile(dst) or (os.path.isdir(dst)) and
+                             query_yes_no('Move NSLS-II from userpackages?')))):
+            import tempfile
+            temp_dir = tempfile.mkdtemp()
+            shutil.move(dst, temp_dir)
+            print('Previous NSLS-II folder moved to {0}'.format(temp_dir))
+        else:
+            print('NSLS-II already exists in userpackages. Please move or delete it'
+                  'and then re-run setup.py')
+            return False
 
     # this symlink does not get removed when pip uninstall vttools is run...
     # todo figure out how to make pip uninstall remove this symlink
