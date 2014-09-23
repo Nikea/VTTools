@@ -59,7 +59,7 @@ except ImportError:
     search_keys_dict = {"search_keys_dict": "Import Unsuccessful"}
 
 try:
-    from metadataStore.analysisapi.utility import listify, get_calib_dict
+    from metadataStore.utilities.utility import listify, get_calib_dict
 except ImportError:
     def listify(*args, **kwargs):
         err_msg = ("listify from metadataStore.analysis.utility is not "
