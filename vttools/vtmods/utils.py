@@ -44,7 +44,7 @@ from vistrails.core.modules.config import IPort, OPort
 from .broker import search_keys_dict
 from .broker import search
 import numpy as np
-from metadataStore.analysisapi.utility import listify, get_data_keys
+from metadataStore.utilities.utility import get_data_keys
 import logging
 logger = logging.getLogger(__name__)
 

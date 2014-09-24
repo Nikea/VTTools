@@ -132,7 +132,7 @@ class Listify(Module):
     try:
         src = obj_src(listify)
         doc = ('source for wrapped function '
-               'metadataStore.analysisapi.commands:listify:\n\n' +
+               'metadataStore.utilities.commands:listify:\n\n' +
                six.text_type(src.__str__()))
 
     except IOError as ie:
@@ -141,7 +141,7 @@ class Listify(Module):
         print(msg)
         src = docstring_func(listify)
         doc = ('docstring for wrapped function '
-               'metadataStore.analysisapi.commands:listify:\n\n' +
+               'metadataStore.utilities.commands:listify:\n\n' +
                six.text_type(src.__str__()))
 
     __doc__ = ('Transpose the run header events into data lists\n\n' + doc)
@@ -181,7 +181,7 @@ class Listify(Module):
         # verify that there is only one key in the dictionary
         if len(key) != 1:
             raise ValueError("The return value from "
-                             "metadataStore.analysisapi.utility.listify had "
+                             "metadataStore.utilities.utility.listify had "
                              "more than one key. Keys: {0}".format(key))
         key = key[0]
         data = data_dict[key]
