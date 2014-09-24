@@ -42,6 +42,7 @@ import pprint
 import time
 import sys
 import logging
+import re
 from numpydoc.docscrape import FunctionDoc, ClassDoc
 from vistrails.core.modules.vistrails_module import (Module, ModuleSettings,
                                                      ModuleError)
@@ -274,6 +275,115 @@ def create_port_params(port_name, port_label, port_type, wrapped_func,
     return pdict
 
 
+def _type_optional(type_str):
+    """
+    Helper function to sort out if a parameter is optional
+
+    This assumes the type is given by a string that is compliant with
+    the numpydoc format.
+
+    Parameters
+    ----------
+    type_str : str
+        The type specification from the docstring
+
+    Returns
+    -------
+    type_str : str
+        The type specification with out the optional flag
+
+    is_optional : bool
+        If the input is optional
+    """
+    is_optional = type_str.endswith('optional')
+    if is_optional:
+        type_str = type_str[:-8].strip(', ')
+
+    return type_str, is_optional
+
+_ENUM_RE = re.compile('\{(.*)\}')
+_ARRAY_SHAPE = re.compile('\(([A-Za-z0-9]+, *)+,?\) *array')
+def _enum_type(type_str):
+    """
+    Helper function to check if the docstring enumerates options
+
+    Parameters
+    ----------
+    type_str : str
+        Type string from numpydoc string.
+
+    Returns
+    -------
+    type_out : str
+        The type of the input suitable for translation to VT types
+    is_enum : bool
+        If the type has
+    """
+    m = _ENUM_RE.search(type_str)
+    if bool(m):
+        is_enum = True
+        enum_list = [_.strip('\'\" ') for _ in m.group(1).split(',')]
+        guessed_types = [_guess_type(_) for _ in enum_list]
+        type_out = guessed_types[0]
+        if not all(_ == type_out for _ in guessed_types[1:]):
+            raise ValueError('mixed type enum, wtf mate')
+        if type_out not in ('int', 'str'):
+            raise ValueError('enum is not discrete, wtf mate')
+    else:
+        is_enum = False
+        enum_list = None
+        type_out = type_str
+
+    return type_out, is_enum, enum_list
+
+
+def _sized_array(type_str):
+    if bool(_ARRAY_SHAPE.search(type_str)):
+        return 'array'
+    return type_str
+
+
+def _guess_type(stringy_val):
+    """
+    Helper function to guess the type of values in an enum are.
+
+    At this point it tries int, float, and complex and then assumes it is
+    a string.
+
+    Parameters
+    ----------
+    stringy_val : str
+        The value to guess the type of
+
+    Returns
+    -------
+    type_str : {'int', 'float', 'complex', 'str'}
+        The guessed type as a string.
+    """
+    # is it an int?
+    try:
+        int(stringy_val)
+    except ValueError:
+        pass
+    else:
+        return 'int'
+    # is it a float?
+    try:
+        float(stringy_val)
+    except ValueError:
+        pass
+    else:
+        return 'float'
+    try:
+        complex(stringy_val)
+    except ValueError:
+        pass
+    else:
+        return 'complex'
+    # give up and assume it is a string
+    return 'str'
+
+
 def define_input_ports(docstring, func):
     """Turn the 'Parameters' fields into VisTrails input ports
 
@@ -291,46 +401,53 @@ def define_input_ports(docstring, func):
         List of input_ports (Vistrails type IPort)
     """
     input_ports = []
-    if 'Parameters' in docstring:
-        for (the_name, the_type, the_description) in docstring['Parameters']:
-            optional = False
-            the_type = the_type.split(',')
-            if len(the_type) == 1:
-                the_type = the_type[0].lower()
-            elif (len(the_type) == 2 and
-                  the_type[1].strip().lower() == 'optional'):
-                # optional = the_type[1].strip()
-                # logger.debug('after stripping: [{0}]'.format(optional))
-                # if the_type[1].strip().lower() is 'optional':
-                optional = True
-                the_type = the_type[0]
-            elif len(the_type) is not 1:
-                # logger.debug('the_type[1][0:1]: {0}'.format(the_type[1][0:1]))
-                raise ValueError("There are two fields for the type in the"
-                                 " numpy doc string, but I don't "
-                                 "understand what the second variable "
-                                 "is. Expected either 'type' or 'type, "
-                                 "optional'. Anything else is incorrect. "
-                                 "You passed in: {0}".format(the_type))
-
-            logger.debug("the_name is {0}. \n\tthe_type is {1} and it is "
-                         "optional: {3}. \n\tthe_description is {2}"
-                         "".format(the_name, the_type,
-                                   '/n'.join(the_description),
-                                   optional))
-
-            port_param_dict = create_port_params(port_name=the_name,
-                                                 port_label=the_description,
-                                                 port_type=the_type,
-                                                 optional=optional,
-                                                 wrapped_func=func)
-            logger.debug('port_param_dict: {0}'.format(port_param_dict))
-            input_ports.append(IPort(**port_param_dict))
-    else:
+    if 'Parameters' not in docstring:
         # raised if 'Parameters' is not in the docstring
         raise KeyError('Docstring is not formatted correctly. There is no '
                        '"Parameters" field. Your docstring: {0}'
                        ''.format(docstring))
+
+    for (the_name, the_type, the_description) in docstring['Parameters']:
+        the_type, is_optional = _type_optional(the_type)
+        the_type, is_enum, enum_list = _enum_type(the_type)
+        the_type = _sized_array(the_type)
+
+
+        logger.debug("the_name is {0}. \n\tthe_type is {1} and it is "
+                     "optional: {3}. \n\tthe_description is {2}"
+                     "".format(the_name, the_type,
+                               '/n'.join(the_description),
+                               is_optional))
+        for port_name in (_.strip() for _ in the_name.split(',')):
+            if not port_name:
+                continue
+            port_type = the_type
+            port_is_enum = is_enum
+            port_enum_list = enum_list
+            # start with the easy ones
+            pdict = {'name': port_name,
+                     'label': '/n'.join(the_description),
+                     'optional': is_optional,
+                     'signature': pytype_to_vtsig(param_type=port_type,
+                                                  param_name=port_name)}
+
+            # deal with if the function as an enum attribute
+            if hasattr(func, port_name):
+                f_enums = getattr(func, port_name)
+                if port_is_enum:
+                    # if we already think this is an enum, make sure they
+                    # match
+                    if len(f_enums) != len(enum_list):
+                        raise ValueError("doc string and function attribute disagree")
+                port_enum_list = f_enums
+                port_is_enum = True
+
+            if port_is_enum:
+                pdict['entry_type'] = 'enum'
+                pdict['values'] = port_enum_list
+
+            logger.debug('port_param_dict: {0}'.format(pdict))
+            input_ports.append(IPort(**pdict))
 
     logger.debug('dir of input_ports[0]: {0}'.format(dir(input_ports[0])))
 
