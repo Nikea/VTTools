@@ -448,7 +448,7 @@ def define_output_ports(docstring):
             logger.error('ValueError raised for Returns parameter with '
                          'name: {0}\n\ttype: {1}\n\tdescription: {2}'
                          ''.format(the_name, the_type, the_description))
-            raise ValueError(ve)
+            six.reraise(ValueError, ve, sys.exc_info()[2])
 
     return output_ports
 
