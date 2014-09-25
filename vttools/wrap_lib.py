@@ -247,6 +247,7 @@ def _type_optional(type_str):
     is_optional : bool
         If the input is optional
     """
+    type_str = type_str.strip()
     is_optional = type_str.endswith('optional')
     if is_optional:
         type_str = type_str[:-8].strip(', ')
