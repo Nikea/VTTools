@@ -421,25 +421,7 @@ def define_output_ports(docstring):
     """
 
     output_ports = []
-    if 'Parameters' in docstring:
-        for (the_name, the_type, the_description) in docstring['Returns']:
-            logger.debug("the_name is {0}. \n\tthe_type is {1}. "
-                         "\n\tthe_description is {2}"
-                         "".format(the_name, the_type, the_description))
-            try:
-                signature = pytype_to_vtsig(param_type=the_type,
-                                            param_name=the_name)
-            except ValueError as ve:
-                logger.error('ValueError raised for Returns parameter with '
-                             'name: {0}\n\ttype: {1}\n\tdescription: {2}'
-                             ''.format(the_name, the_type, the_description))
-                raise ValueError(ve)
-
-            output_ports.append(OPort(name=the_name,
-                                      signature=pytype_to_vtsig(
-                                          param_type=the_type,
-                                          param_name=the_name)))
-    else:
+    if 'Returns' not in docstring:
         # raised if 'Returns' is not in the docstring.
         # This should probably just create an empty list if there is no
         # Returns field in the docstring. Though if there is no returns field,
@@ -448,6 +430,21 @@ def define_output_ports(docstring):
         raise KeyError('Docstring is not formatted correctly. There is no '
                        '"Returns" field. Your docstring: {0}'
                        ''.format(docstring))
+
+    for (the_name, the_type, the_description) in docstring['Returns']:
+        logger.debug("the_name is {0}. \n\tthe_type is {1}. "
+                     "\n\tthe_description is {2}"
+                     "".format(the_name, the_type, the_description))
+        try:
+            output_ports.append(OPort(name=the_name,
+                                      signature=pytype_to_vtsig(
+                                          param_type=the_type,
+                                          param_name=the_name)))
+        except ValueError as ve:
+            logger.error('ValueError raised for Returns parameter with '
+                         'name: {0}\n\ttype: {1}\n\tdescription: {2}'
+                         ''.format(the_name, the_type, the_description))
+            raise ValueError(ve)
 
     return output_ports
 
