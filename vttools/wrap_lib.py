@@ -227,54 +227,6 @@ def pytype_to_vtsig(param_type, param_name):
     return port_sig
 
 
-def create_port_params(port_name, port_label, port_type, wrapped_func,
-                       optional=False):
-    """
-    Create the parameter dictionary for an input port.
-
-    The reason why this function exists is to deal with cases where an
-    enum port type is more appropriate.  In the rare cases when we actually
-    want an enum port, this function returns a dictionary that, when unpacked
-    into IPort() creates an enunm port
-
-    Parameters
-    ----------
-    port_name : str
-        Name of the input port
-    port_label : str
-        Description of the input port
-    port_type : str
-        Stringly-typed VisTrails type
-    wrapped_func : function
-        The python function to be wrapped
-    optional : bool
-        Determines whether this port shows up by default
-
-    Returns
-    -------
-    param_dict : dict
-        Dictionary that should be unpacked into IPort() to create a port.
-        Depending on the k,v pairs in param_dict, the port that gets created
-        will be appropriate to `name` and `type`
-    """
-    logger.debug('create_port_params function input parameters: '
-                 'name is {0}\nlabel is {1}\nport_type is {2}\noptional is {3}'
-                 ''.format(port_name, port_label, port_type, optional))
-    # stash the easy input parameters
-    pdict = {'name': port_name, 'label': '/n'.join(port_label),
-             'optional': optional,
-             'signature': pytype_to_vtsig(param_type=port_type,
-                                          param_name=port_name)}
-
-    if hasattr(wrapped_func, port_name):
-        #todo for enums I'm not sure if the VisTrails port signature has to be 'string'
-        # pdict['signature'] = pytype_to_vtsig(port_type)
-        pdict['entry_type'] = 'enum'
-        pdict['values'] = getattr(wrapped_func, port_name)
-
-    return pdict
-
-
 def _type_optional(type_str):
     """
     Helper function to sort out if a parameter is optional
