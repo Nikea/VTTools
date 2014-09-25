@@ -392,7 +392,9 @@ def define_input_ports(docstring, func):
                     # if we already think this is an enum, make sure they
                     # match
                     if len(f_enums) != len(enum_list):
-                        raise ValueError("doc string and function attribute disagree")
+                        raise ValueError(("doc string and function attribute disagree\n"
+                                         "attr: {}\n"
+                                         "doc : {}").format(f_enums, enum_list))
                 port_enum_list = f_enums
                 port_is_enum = True
 
