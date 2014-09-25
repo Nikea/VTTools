@@ -316,23 +316,24 @@ def _guess_type(stringy_val):
     # is it an int?
     try:
         int(stringy_val)
+        return 'int'
     except ValueError:
         pass
-    else:
-        return 'int'
+
     # is it a float?
     try:
         float(stringy_val)
+        return 'float'
     except ValueError:
         pass
-    else:
-        return 'float'
+
+    # is it complex?
     try:
         complex(stringy_val)
+        return 'complex'
     except ValueError:
         pass
-    else:
-        return 'complex'
+
     # give up and assume it is a string
     return 'str'
 
