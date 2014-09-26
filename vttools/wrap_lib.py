@@ -175,10 +175,12 @@ def docstring_func(pyobj):
 sig_map = {
     'ndarray': 'basic:Variant',
     'array': 'basic:Variant',
+    'array_like': 'basic:Variant',
     'np.ndarray': 'basic:Variant',
     'list': 'basic:List',
     'int': 'basic:Integer',
     'integer': 'basic:Integer',
+    'scalar': 'basic:Float',
     'float': 'basic:Float',
     'tuple': 'basic:Tuple',
     'dict': 'basic:Dictionary',
@@ -360,12 +362,20 @@ def define_input_ports(docstring, func):
         raise KeyError('Docstring is not formatted correctly. There is no '
                        '"Parameters" field. Your docstring: {0}'
                        ''.format(docstring))
-
     for (the_name, the_type, the_description) in docstring['Parameters']:
+        if the_name == 'output':
+            continue
         the_type, is_optional = _type_optional(the_type)
         the_type, is_enum, enum_list = _enum_type(the_type)
         the_type = _sized_array(the_type)
-
+        if the_type == '':
+            continue
+        elif 'float' and 'int' in the_type:
+            the_type = 'float'
+        elif 'tuple' in the_type:
+            the_type = 'tuple'
+        elif 'scalar or sequence of scalars' in the_type:
+            the_type = 'scalar'
 
         logger.debug("the_name is {0}. \n\tthe_type is {1} and it is "
                      "optional: {3}. \n\tthe_description is {2}"
@@ -392,9 +402,7 @@ def define_input_ports(docstring, func):
                     # if we already think this is an enum, make sure they
                     # match
                     if len(f_enums) != len(enum_list):
-                        raise ValueError(("doc string and function attribute disagree\n"
-                                         "attr: {}\n"
-                                         "doc : {}").format(f_enums, enum_list))
+                        raise ValueError()
                 port_enum_list = f_enums
                 port_is_enum = True
 
@@ -404,12 +412,28 @@ def define_input_ports(docstring, func):
 
             logger.debug('port_param_dict: {0}'.format(pdict))
             input_ports.append(IPort(**pdict))
-
+    if len(input_ports) == 0:
+        print (docstring['Parameters'])
+        print (func.__name__)
     logger.debug('dir of input_ports[0]: {0}'.format(dir(input_ports[0])))
 
     return input_ports
 
-
+# errstr='Attempting to automatically create '
+#                                          'an enum port for the function named '
+#                                          '{0}. The values for the enum port '
+#                                          'defined in the doc string are {1} '
+#                                          'with length {2} and there is a '
+#                                          'function attribute with values {3} '
+#                                          'and length {4}.  Please make sure '
+#                                          'the values in the docstring agree '
+#                                          'with the values in the function '
+#                                          'attribute, as I\'m not sure which '
+#                                          'to use.'.format(the_name,
+#                                                           enum_list,
+#                                                           len(enum_list),
+#                                                           f_enums,
+#                                                           len(f_enums)))
 def define_output_ports(docstring):
     """Turn the 'Returns' fields into VisTrails output ports
 
@@ -426,14 +450,22 @@ def define_output_ports(docstring):
 
     output_ports = []
     if 'Returns' not in docstring:
+        #Check for 'output' in the parameters list
+        for (the_name, the_type, the_description) in docstring['Parameters']:
+            if the_name == 'output':
+                output_ports.append(OPort(name=the_name,
+                                          signature=pytype_to_vtsig(
+                                              param_type=the_type,
+                                              param_name=the_name)))
         # raised if 'Returns' is not in the docstring.
         # This should probably just create an empty list if there is no
         # Returns field in the docstring. Though if there is no returns field,
         # why would we be wrapping the module automatically... what to do...
         # What. To. Do.?
-        raise KeyError('Docstring is not formatted correctly. There is no '
-                       '"Returns" field. Your docstring: {0}'
-                       ''.format(docstring))
+        if len(output_ports) == 0:
+            raise KeyError('Docstring is not formatted correctly. '
+                           'There is no "Returns" field. '
+                           'Your docstring: {0}'.format(docstring))
 
     for (the_name, the_type, the_description) in docstring['Returns']:
         logger.debug("the_name is {0}. \n\tthe_type is {1}. "
