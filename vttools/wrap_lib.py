@@ -390,6 +390,11 @@ def define_input_ports(docstring, func):
             port_enum_list = enum_list
             # start with the easy ones
             pdict = {'name': port_name,
+# TODO: change this join operator to only include the first four words of
+#                 the_description. Taek the_description[0] and split on space,\
+#                     take first 4 words, then rejoin. AND make it ok for \
+#                     description to acutally be empty. e.g. if ... somthing \
+#                     in description[0] then do stuff else empty...
                      'label': '/n'.join(the_description),
                      'optional': is_optional,
                      'signature': pytype_to_vtsig(param_type=port_type,
