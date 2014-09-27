@@ -298,6 +298,70 @@ def _sized_array(type_str):
     return type_str
 
 
+def _check_alt_types(type_str):
+    """
+    This function checks for, and enables proper sorting of unique or
+    atypical input types. The hierarchy devised thus far:
+    1) input type strings stating float or int automatically cast to float,
+        since most operations will interpret or convert a float input to an
+        int if and when required. It is expected that type casting where
+        float instead of int will cause problems will have been explicitly
+        stipulated to be int, without any ambiguity.
+    2) any complex type that includes the option to be a tuple will
+        automatically be cast to tuple. Thus far most of these cases state
+        that the input should be a scalar or a tuple, in which case the scalar
+        input will simply need to be repeated for each array dimension
+        (e.g. (x,x,x) for a isotropic 3D array type, or (x,x) for a 2D array
+        type.
+    3) the most unique type cast thus far 'scalar or sequence of scalars'
+    will simply cast to scalar, unless we run into problems where this won't
+    work.
+
+    Parameters
+    ----------
+    type_str : string
+        variable type stripped from original doc string
+
+    Returns
+    -------
+    output : string
+        corrected variable type for proper wrapping into vistrails
+    """
+    if 'float' and 'int' in type_str:
+        type_str = 'float'
+    elif 'tuple' in type_str:
+        type_str = 'tuple'
+    elif 'scalar or sequence of scalars' in type_str:
+        type_str = 'scalar'
+    return type_str
+
+
+def _truncate_description(original_description, word_cnt_to_include):
+    """
+    This function will truncate the stripped doc string to a more manageable
+    length for incorporation into wrapped vistrails functions
+
+    Parameters
+    ----------
+    original_description : list
+        This object is the original description stripped from the
+        doc string. The object is actually a list of strings.
+
+    word_cnt_to_include : int
+        specify the number of words to trim the description down to
+
+    Returns
+    -------
+    short_description : string
+        truncated description that will be passed into vistrails
+    """
+    short_description = (
+        original_description[0].split(' ')[0:word_cnt_to_include]
+    )
+    short_description = ' '.join(short_description)
+    return short_description
+
+
 def _guess_type(stringy_val):
     """
     Helper function to guess the type of values in an enum are.
@@ -357,31 +421,36 @@ def define_input_ports(docstring, func):
         List of input_ports (Vistrails type IPort)
     """
     input_ports = []
+    short_description_word_count = 4
     if 'Parameters' not in docstring:
         # raised if 'Parameters' is not in the docstring
         raise KeyError('Docstring is not formatted correctly. There is no '
                        '"Parameters" field. Your docstring: {0}'
                        ''.format(docstring))
+
     for (the_name, the_type, the_description) in docstring['Parameters']:
         if the_name == 'output':
             continue
         the_type, is_optional = _type_optional(the_type)
         the_type, is_enum, enum_list = _enum_type(the_type)
         the_type = _sized_array(the_type)
+
+        # Accounts for extraneous notes or lines in doc string that are not
+        # actually input or output parameters
         if the_type == '':
             continue
-        elif 'float' and 'int' in the_type:
-            the_type = 'float'
-        elif 'tuple' in the_type:
-            the_type = 'tuple'
-        elif 'scalar or sequence of scalars' in the_type:
-            the_type = 'scalar'
+        #Finish checking for alternate, complicated, or unique doc types
+        the_type = _check_alt_types(the_type)
+        #Trim parameter descriptions for incorporation into vistrails
+        short_description = _truncate_description(the_description,
+                                                  short_description_word_count)
 
         logger.debug("the_name is {0}. \n\tthe_type is {1} and it is "
                      "optional: {3}. \n\tthe_description is {2}"
                      "".format(the_name, the_type,
-                               '/n'.join(the_description),
+                               ' '.join(short_description),
                                is_optional))
+
         for port_name in (_.strip() for _ in the_name.split(',')):
             if not port_name:
                 continue
@@ -390,12 +459,7 @@ def define_input_ports(docstring, func):
             port_enum_list = enum_list
             # start with the easy ones
             pdict = {'name': port_name,
-# TODO: change this join operator to only include the first four words of
-#                 the_description. Taek the_description[0] and split on space,\
-#                     take first 4 words, then rejoin. AND make it ok for \
-#                     description to acutally be empty. e.g. if ... somthing \
-#                     in description[0] then do stuff else empty...
-                     'label': '/n'.join(the_description),
+                     'label': ' '.join(short_description),
                      'optional': is_optional,
                      'signature': pytype_to_vtsig(param_type=port_type,
                                                   param_name=port_name)}
@@ -407,38 +471,36 @@ def define_input_ports(docstring, func):
                     # if we already think this is an enum, make sure they
                     # match
                     if len(f_enums) != len(enum_list):
-                        raise ValueError()
+                        raise ValueError('Attempting to automatically create '
+                                         'an enum port for the function named'
+                                         ' {0}. The values for the enum port '
+                                         'defined in the doc string are {1} '
+                                         'with length {2} and there is a '
+                                         'function attribute with values {3} '
+                                         'and length {4}.  Please make sure '
+                                         'the values in the docstring agree '
+                                         'with the values in the function '
+                                         'attribute, as I\'m not sure which '
+                                         'to use.'.format(the_name,
+                                                          enum_list,
+                                                          len(enum_list),
+                                                          f_enums,
+                                                          len(f_enums)))
                 port_enum_list = f_enums
                 port_is_enum = True
-
             if port_is_enum:
                 pdict['entry_type'] = 'enum'
                 pdict['values'] = port_enum_list
 
             logger.debug('port_param_dict: {0}'.format(pdict))
             input_ports.append(IPort(**pdict))
-    if len(input_ports) == 0:
-        print (docstring['Parameters'])
-        print (func.__name__)
-    logger.debug('dir of input_ports[0]: {0}'.format(dir(input_ports[0])))
 
+    if len(input_ports) == 0:
+        logger.debug('dir of input_ports[0]: {0}'.format(dir(input_ports[0])))
+    print (func.__name__)
     return input_ports
 
-# errstr='Attempting to automatically create '
-#                                          'an enum port for the function named '
-#                                          '{0}. The values for the enum port '
-#                                          'defined in the doc string are {1} '
-#                                          'with length {2} and there is a '
-#                                          'function attribute with values {3} '
-#                                          'and length {4}.  Please make sure '
-#                                          'the values in the docstring agree '
-#                                          'with the values in the function '
-#                                          'attribute, as I\'m not sure which '
-#                                          'to use.'.format(the_name,
-#                                                           enum_list,
-#                                                           len(enum_list),
-#                                                           f_enums,
-#                                                           len(f_enums)))
+
 def define_output_ports(docstring):
     """Turn the 'Returns' fields into VisTrails output ports
 
@@ -454,10 +516,24 @@ def define_output_ports(docstring):
     """
 
     output_ports = []
-    if 'Returns' not in docstring:
-        #Check for 'output' in the parameters list
+    short_description_word_count = 4
+    if ('Returns' or 'returns' not in docstring and
+        'output' or 'Output' in docstring):
         for (the_name, the_type, the_description) in docstring['Parameters']:
-            if the_name == 'output':
+            if the_name.lower() == 'output':
+                the_type, is_optional = _type_optional(the_type)
+                the_type, is_enum, enum_list = _enum_type(the_type)
+                the_type = _sized_array(the_type)
+                # Accounts for extraneous notes or lines in doc string that are not
+                # actually input or output parameters
+                if the_type == '':
+                    continue
+                #Finish checking for alternate, complicated, or unique doc types
+                the_type = _check_alt_types(the_type)
+                #Trim parameter descriptions for incorporation into vistrails
+                short_description = _truncate_description(the_description,
+                                                  short_description_word_count)
+
                 output_ports.append(OPort(name=the_name,
                                           signature=pytype_to_vtsig(
                                               param_type=the_type,
@@ -467,12 +543,28 @@ def define_output_ports(docstring):
         # Returns field in the docstring. Though if there is no returns field,
         # why would we be wrapping the module automatically... what to do...
         # What. To. Do.?
+    elif 'Returns' or 'returns' not in docstring:
         if len(output_ports) == 0:
             raise KeyError('Docstring is not formatted correctly. '
                            'There is no "Returns" field. '
                            'Your docstring: {0}'.format(docstring))
 
     for (the_name, the_type, the_description) in docstring['Returns']:
+        the_type, is_optional = _type_optional(the_type)
+        the_type, is_enum, enum_list = _enum_type(the_type)
+        the_type = _sized_array(the_type)
+
+        # Accounts for extraneous notes or lines in doc string that are not
+        # actually input or output parameters
+        if the_type == '':
+            continue
+        #Finish checking for alternate, complicated, or unique doc types
+        the_type = _check_alt_types(the_type)
+        #Trim parameter descriptions for incorporation into vistrails
+        short_description = _truncate_description(the_description,
+                                                  short_description_word_count)
+
+
         logger.debug("the_name is {0}. \n\tthe_type is {1}. "
                      "\n\tthe_description is {2}"
                      "".format(the_name, the_type, the_description))
@@ -486,7 +578,8 @@ def define_output_ports(docstring):
                          'name: {0}\n\ttype: {1}\n\tdescription: {2}'
                          ''.format(the_name, the_type, the_description))
             six.reraise(ValueError, ve, sys.exc_info()[2])
-
+    print ('OUTPUT PORTS SHOULD BE GOING HERE')
+    print (output_ports)
     return output_ports
 
 
