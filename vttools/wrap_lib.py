@@ -327,12 +327,21 @@ def _check_alt_types(type_str):
     output : string
         corrected variable type for proper wrapping into vistrails
     """
-    if 'float' and 'int' in type_str:
+    if 'float' in type_str and 'int' in type_str:
         type_str = 'float'
     elif 'tuple' in type_str:
         type_str = 'tuple'
     elif 'scalar or sequence of scalars' in type_str:
         type_str = 'scalar'
+    elif 'float' in type_str and 'sequence' in type_str:
+        type_str = 'float'
+    elif 'int' in type_str and 'sequence' in type_str:
+        type_str = 'int',
+    elif 'ndarray' in type_str:
+        type_str = 'ndarray'
+    elif 'int' in type_str and 'float' not in type_str and 'tuple' not in \
+            type_str:
+        type_str = 'int'
     return type_str
 
 
@@ -355,9 +364,10 @@ def _truncate_description(original_description, word_cnt_to_include):
     short_description : string
         truncated description that will be passed into vistrails
     """
-    short_description = (
-        original_description[0].split(' ')[0:word_cnt_to_include]
-    )
+    if len(original_description[0].split(' ')) > word_cnt_to_include:
+        short_description = (
+            original_description[0].split(' ')[0:word_cnt_to_include]
+            )
     short_description = ' '.join(short_description)
     return short_description
 
@@ -497,7 +507,6 @@ def define_input_ports(docstring, func):
 
     if len(input_ports) == 0:
         logger.debug('dir of input_ports[0]: {0}'.format(dir(input_ports[0])))
-    print (func.__name__)
     return input_ports
 
 
@@ -513,12 +522,16 @@ def define_output_ports(docstring):
     -------
     input_ports : list
         List of input_ports (Vistrails type IPort)
+
+    Record of Alternate Output Types
+    --------------------------------
+    'ndarray of bools' -- See: scipy.ndimage.morphology.binary_opening
+
     """
 
     output_ports = []
     short_description_word_count = 4
-    if ('Returns' or 'returns' not in docstring and
-        'output' or 'Output' in docstring):
+    if len(docstring['Returns']) == 0:
         for (the_name, the_type, the_description) in docstring['Parameters']:
             if the_name.lower() == 'output':
                 the_type, is_optional = _type_optional(the_type)
@@ -543,7 +556,7 @@ def define_output_ports(docstring):
         # Returns field in the docstring. Though if there is no returns field,
         # why would we be wrapping the module automatically... what to do...
         # What. To. Do.?
-    elif 'Returns' or 'returns' not in docstring:
+    elif 'Returns' not in docstring:
         if len(output_ports) == 0:
             raise KeyError('Docstring is not formatted correctly. '
                            'There is no "Returns" field. '
@@ -578,8 +591,6 @@ def define_output_ports(docstring):
                          'name: {0}\n\ttype: {1}\n\tdescription: {2}'
                          ''.format(the_name, the_type, the_description))
             six.reraise(ValueError, ve, sys.exc_info()[2])
-    print ('OUTPUT PORTS SHOULD BE GOING HERE')
-    print (output_ports)
     return output_ports
 
 
