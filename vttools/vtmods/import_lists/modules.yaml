@@ -30,6 +30,15 @@ autowrap_func:
 - func_name: read_binary
   module_path: nsls2.io.binary
   namespace: io
+- func_name: gauss_fit
+  module_path: nsls2.fitting.model.physics_model
+  namespace: fitting
+- func_name: lorentzian_fit
+  module_path: nsls2.fitting.model.physics_model
+  namespace: fitting
+- func_name: lorentzian2_fit
+  module_path: nsls2.fitting.model.physics_model
+  namespace: fitting
 
 #- {func_name: emission_line_search, module_path: nsls2.constants,  namespace: core, add_input_dict: true}
 #- {func_name: snip_method, module_path: nsls2.fitting.model.background,namespace: core, add_input_dict: true}
