@@ -39,6 +39,12 @@ autowrap_func:
 - func_name: lorentzian2_fit
   module_path: nsls2.fitting.model.physics_model
   namespace: fitting
+- func_name: refine_center
+  module_path: nsls2.calibration
+  namespace: calibration
+- func_name: estimate_d_blind
+  module_path: nsls2.calibration
+  namespace: calibration
 
 #- {func_name: emission_line_search, module_path: nsls2.constants,  namespace: core, add_input_dict: true}
 #- {func_name: snip_method, module_path: nsls2.fitting.model.background,namespace: core, add_input_dict: true}
