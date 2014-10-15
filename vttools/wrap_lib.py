@@ -65,6 +65,7 @@ def obj_src(py_obj, escape_docstring=True):
     ----------
     py_obj : obj
         Any python object
+
     escape_doc_string : bool
         If true, prepend the escape character to the docstring triple quotes
 
@@ -190,6 +191,7 @@ sig_map = {
     'numpy.dtype': 'basic:String',
     'np.dtype': 'basic:String',
     'dtype': 'basic:String',
+    'sequence': 'basic:List'
 }
 
 
@@ -200,6 +202,7 @@ def pytype_to_vtsig(param_type, param_name):
     ----------
     param_type : str
         The type of the parameter from the library function to be wrapped
+
     param_name : str
         The name of the parameter from the library function to be wrapped
 
@@ -256,8 +259,11 @@ def _type_optional(type_str):
 
     return type_str, is_optional
 
+
 _ENUM_RE = re.compile('\{(.*)\}')
 _ARRAY_SHAPE = re.compile('\(([A-Za-z0-9]+, *)+,?\) *array')
+
+
 def _enum_type(type_str):
     """
     Helper function to check if the docstring enumerates options
@@ -271,6 +277,7 @@ def _enum_type(type_str):
     -------
     type_out : str
         The type of the input suitable for translation to VT types
+
     is_enum : bool
         If the type has
     """
@@ -314,8 +321,8 @@ def _check_alt_types(type_str):
         (e.g. (x,x,x) for a isotropic 3D array type, or (x,x) for a 2D array
         type.
     3) the most unique type cast thus far 'scalar or sequence of scalars'
-    will simply cast to scalar, unless we run into problems where this won't
-    work.
+        will simply cast to scalar, unless we run into problems where this won't
+        work.
 
     Parameters
     ----------
@@ -364,6 +371,7 @@ def _truncate_description(original_description, word_cnt_to_include):
     short_description : string
         truncated description that will be passed into vistrails
     """
+    short_description = original_description[0]
     if len(original_description[0].split(' ')) > word_cnt_to_include:
         short_description = (
             original_description[0].split(' ')[0:word_cnt_to_include]
