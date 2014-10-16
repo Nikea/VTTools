@@ -43,6 +43,7 @@ import time
 import sys
 import logging
 import re
+from collections import OrderedDict
 from numpydoc.docscrape import FunctionDoc, ClassDoc
 from vistrails.core.modules.vistrails_module import (Module, ModuleSettings,
                                                      ModuleError)
@@ -399,7 +400,7 @@ def _guess_type(stringy_val):
     type_str : {'int', 'float', 'complex', 'str'}
         The guessed type as a string.
     """
-    od = ordereddict()
+    od = OrderedDict()
     od['int'] = int
     od['float'] = float
     od['complex'] = complex
