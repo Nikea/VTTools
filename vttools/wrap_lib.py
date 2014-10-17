@@ -528,7 +528,6 @@ def define_output_ports(docstring):
     """
 
     output_ports = []
-    short_description_word_count = 4
     # Check to make sure that there is a 'Returns' section in the docstring
     if len(docstring['Returns']) == 0:
         # If the 'Returns' section is included, but does not have any
@@ -545,9 +544,6 @@ def define_output_ports(docstring):
                     continue
                 # Finish checking for alternate, complicated, or unique doc types
                 the_type = _check_alt_types(the_type)
-                # Trim parameter descriptions for incorporation into vistrails
-                the_description = _truncate_description(the_description,
-                                                  short_description_word_count)
                 output_ports.append(OPort(name=the_name,
                                           signature=pytype_to_vtsig(
                                               param_type=the_type,
@@ -562,8 +558,6 @@ def define_output_ports(docstring):
                 if the_type == '':
                     continue
                 the_type = _check_alt_types(the_type)
-                the_description = _truncate_description(the_description,
-                                                  short_description_word_count)
                 output_ports.append(OPort(name=the_name,
                                           signature=pytype_to_vtsig(
                                               param_type=the_type,
@@ -580,8 +574,6 @@ def define_output_ports(docstring):
         if the_type == '':
             continue
         the_type = _check_alt_types(the_type)
-        the_description = _truncate_description(the_description,
-                                                  short_description_word_count)
 
         logger.debug("the_name is {0}. \n\tthe_type is {1}. "
                      "\n\tthe_description is {2}"
