@@ -53,12 +53,11 @@ from numpy import interp
 from numpy.testing import assert_string_equal, assert_equal, assert_raises
 
 
-def test_obj_src(interp):
+def test_obj_src():
     string_result = wrap_lib.obj_src(interp)
-    initial_txt_should_be = 'def interp(x, xp, fp, left=None, right=None)'
+    initial_txt_should_be = str('def interp(x, xp, fp, left=None, right=None)')
     initial_txt_actual = string_result[0:44]
     assert_string_equal(initial_txt_actual, initial_txt_should_be)
-    pass
 
 
 def test_pytype_to_vtsig():
@@ -81,8 +80,8 @@ def test_pytype_to_vtsig_error():
 def test_type_optional():
     test_string1 = 'array, optional'
     test_string2 = 'array'
-    assert_equals(wrap_lib._type_optional(test_string1)[1], True)
-    assert_equals(wrap_lib._type_optional(test_string2)[1], False)
+    assert_equal(wrap_lib._type_optional(test_string1)[1], True)
+    assert_equal(wrap_lib._type_optional(test_string2)[1], False)
 
 
 def test_enum_type():
@@ -103,6 +102,9 @@ def test_sized_array():
     #This string should pass through this function without processing
     # or modification (should pass through unscathed)
     test_str2 = 'ndarray'
+    assert_equal(wrap_lib._sized_array(test_str1), 'array')
+    assert_equal(wrap_lib._sized_array(test_str2), 'ndarray')
+
 
     pass
 
