@@ -165,7 +165,7 @@ def setup_bnl_menu():
 
     def foo():
         #query_window.show()
-        print 'Menu Button Clicked.'
+        print ('Menu Button Clicked.')
     bnl_menu.addAction("demo", foo)
 
 
