@@ -420,7 +420,7 @@ def define_input_ports(docstring, func):
 
     Parameters
     ----------
-    docstring : NumpyDocString #List of strings?
+    docstring : NumpyDocString
         The scraped docstring from the
 
     func : function
@@ -512,14 +512,12 @@ def define_input_ports(docstring, func):
 
 
 def define_output_ports(docstring):
-    """
-    Turn the 'Returns' fields into VisTrails output ports
+    """Turn the 'Returns' fields into VisTrails output ports
 
     Parameters
     ----------
-    docstring : NumpyDocString #List of strings?
-        The scraped docstring from the function being autowrapped into
-        vistrails
+    docstring : NumpyDocString
+        The scraped docstring from the
 
     Returns
     -------
@@ -529,10 +527,8 @@ def define_output_ports(docstring):
 
     output_ports = []
     # Check to make sure that there is a 'Returns' section in the docstring
+    short_description_word_count = 4
     if len(docstring['Returns']) == 0:
-        # If the 'Returns' section is included, but does not have any
-        # parameters listed, then check the 'Parameters' section to see
-        # whether the output is actually included as an optional input
         for (the_name, the_type, the_description) in docstring['Parameters']:
             if the_name.lower() == 'output':
                 the_type, is_optional = _type_optional(the_type)
@@ -544,6 +540,9 @@ def define_output_ports(docstring):
                     continue
                 # Finish checking for alternate, complicated, or unique doc types
                 the_type = _check_alt_types(the_type)
+                # Trim parameter descriptions for incorporation into vistrails
+                short_description = _truncate_description(the_description,
+                                                  short_description_word_count)
                 output_ports.append(OPort(name=the_name,
                                           signature=pytype_to_vtsig(
                                               param_type=the_type,
@@ -558,6 +557,8 @@ def define_output_ports(docstring):
                 if the_type == '':
                     continue
                 the_type = _check_alt_types(the_type)
+                short_description = _truncate_description(the_description,
+                                                  short_description_word_count)
                 output_ports.append(OPort(name=the_name,
                                           signature=pytype_to_vtsig(
                                               param_type=the_type,
@@ -574,6 +575,8 @@ def define_output_ports(docstring):
         if the_type == '':
             continue
         the_type = _check_alt_types(the_type)
+        short_description = _truncate_description(the_description,
+                                                  short_description_word_count)
 
         logger.debug("the_name is {0}. \n\tthe_type is {1}. "
                      "\n\tthe_description is {2}"
