@@ -272,7 +272,8 @@ def _enum_type(type_str):
     Parameters
     ----------
     type_str : str
-        Type string from numpydoc string.
+        String specifying the input type. This string was stripped from the
+        numpydoc string.
 
     Returns
     -------
@@ -280,7 +281,7 @@ def _enum_type(type_str):
         The type of the input suitable for translation to VT types
 
     is_enum : bool
-        If the type has
+        Boolean switch specifying whether inputs include enumerated options.
     """
     m = _ENUM_RE.search(type_str)
     if bool(m):
@@ -327,29 +328,30 @@ def _check_alt_types(type_str):
 
     Parameters
     ----------
-    type_str : string
+    type_str : str
         variable type stripped from original doc string
 
     Returns
     -------
-    output : string
+    output : str
         corrected variable type for proper wrapping into vistrails
+
+    Notes
+    -----
+    Record of Alternate Output Types
+        'ndarray of bools' -- See: scipy.ndimage.morphology.binary_opening
     """
     if 'float' in type_str and 'int' in type_str:
         type_str = 'float'
     elif 'tuple' in type_str:
         type_str = 'tuple'
-    elif 'scalar or sequence of scalars' in type_str:
-        type_str = 'scalar'
-    elif 'float' in type_str and 'sequence' in type_str:
-        type_str = 'float'
-    elif 'int' in type_str and 'sequence' in type_str:
-        type_str = 'int',
-    elif 'ndarray' in type_str:
-        type_str = 'ndarray'
     elif 'int' in type_str and 'float' not in type_str and 'tuple' not in \
             type_str:
         type_str = 'int'
+    elif 'sequence' in type_str:
+        type_str = 'list'
+    elif 'ndarray' in type_str:
+        type_str = 'ndarray'
     return type_str
 
 
@@ -402,6 +404,13 @@ def _guess_type(stringy_val):
     od['int'] = int
     od['float'] = float
     od['complex'] = complex
+
+    for k, v in six.iteritems(od):
+        try:
+            v(stringy_val)
+            return k
+        except ValueError:  # I think it's a value error
+            pass
     # give up and assume it is a string
     return 'str'
 
@@ -411,7 +420,7 @@ def define_input_ports(docstring, func):
 
     Parameters
     ----------
-    docstring : NumpyDocString
+    docstring : NumpyDocString #List of strings?
         The scraped docstring from the
 
     func : function
@@ -441,9 +450,9 @@ def define_input_ports(docstring, func):
         # actually input or output parameters
         if the_type == '':
             continue
-        #Finish checking for alternate, complicated, or unique doc types
+        # Finish checking for alternate, complicated, or unique doc types
         the_type = _check_alt_types(the_type)
-        #Trim parameter descriptions for incorporation into vistrails
+        # Trim parameter descriptions for incorporation into vistrails
         short_description = _truncate_description(the_description,
                                                   short_description_word_count)
 
@@ -503,28 +512,27 @@ def define_input_ports(docstring, func):
 
 
 def define_output_ports(docstring):
-    """Turn the 'Returns' fields into VisTrails output ports
+    """
+    Turn the 'Returns' fields into VisTrails output ports
 
     Parameters
     ----------
-    docstring : NumpyDocString
-        The scraped docstring from the
+    docstring : NumpyDocString #List of strings?
+        The scraped docstring from the function being autowrapped into
+        vistrails
 
     Returns
     -------
     input_ports : list
         List of input_ports (Vistrails type IPort)
-
-    Record of Alternate Output Types
-    --------------------------------
-    'ndarray of bools' -- See: scipy.ndimage.morphology.binary_opening
-
     """
 
     output_ports = []
     # Check to make sure that there is a 'Returns' section in the docstring
-    short_description_word_count = 4
     if len(docstring['Returns']) == 0:
+        # If the 'Returns' section is included, but does not have any
+        # parameters listed, then check the 'Parameters' section to see
+        # whether the output is actually included as an optional input
         for (the_name, the_type, the_description) in docstring['Parameters']:
             if the_name.lower() == 'output':
                 the_type, is_optional = _type_optional(the_type)
@@ -534,42 +542,38 @@ def define_output_ports(docstring):
                 # actually input or output parameters
                 if the_type == '':
                     continue
-                #Finish checking for alternate, complicated, or unique doc types
+                # Finish checking for alternate, complicated, or unique doc types
                 the_type = _check_alt_types(the_type)
-                #Trim parameter descriptions for incorporation into vistrails
-                short_description = _truncate_description(the_description,
-                                                  short_description_word_count)
-
                 output_ports.append(OPort(name=the_name,
                                           signature=pytype_to_vtsig(
                                               param_type=the_type,
                                               param_name=the_name)))
-        # raised if 'Returns' is not in the docstring.
-        # This should probably just create an empty list if there is no
-        # Returns field in the docstring. Though if there is no returns field,
-        # why would we be wrapping the module automatically... what to do...
-        # What. To. Do.?
     elif 'Returns' not in docstring:
+        # Verify that output was not included in the 'Parameters' section
+        for (the_name, the_type, the_description) in docstring['Parameters']:
+            if the_name.lower() == 'output':
+                the_type, is_optional = _type_optional(the_type)
+                the_type, is_enum, enum_list = _enum_type(the_type)
+                the_type = _sized_array(the_type)
+                if the_type == '':
+                    continue
+                the_type = _check_alt_types(the_type)
+                output_ports.append(OPort(name=the_name,
+                                          signature=pytype_to_vtsig(
+                                              param_type=the_type,
+                                              param_name=the_name)))
+        # Now, if output_ports remains empty, then KeyError gets raised.
         if len(output_ports) == 0:
             raise KeyError('Docstring is not formatted correctly. '
                            'There is no "Returns" field. '
                            'Your docstring: {0}'.format(docstring))
-
     for (the_name, the_type, the_description) in docstring['Returns']:
         the_type, is_optional = _type_optional(the_type)
         the_type, is_enum, enum_list = _enum_type(the_type)
         the_type = _sized_array(the_type)
-
-        # Accounts for extraneous notes or lines in doc string that are not
-        # actually input or output parameters
         if the_type == '':
             continue
-        #Finish checking for alternate, complicated, or unique doc types
         the_type = _check_alt_types(the_type)
-        #Trim parameter descriptions for incorporation into vistrails
-        short_description = _truncate_description(the_description,
-                                                  short_description_word_count)
-
 
         logger.debug("the_name is {0}. \n\tthe_type is {1}. "
                      "\n\tthe_description is {2}"
@@ -670,13 +674,16 @@ def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
     ----------
     func_name : str
         Name of the function to wrap into VisTrails. Example 'grid3d'
+
     module_path : str
         Name of the module which contains the function. Example: 'nsls2.core'
+
     add_input_dict : bool, optional
         Flag that instructs the wrapping machinery to add a dictionary input
         port to the resultant VisTrails module. This dictionary port is
         solely a convenience function whose main purpose is to unpack the
         dictionary into the wrapped function
+
     namespace : str
         Path to the function in VisTrails.  This should be a string separated
         by vertical bars: |.  Example: 'vis|test' will put the new VisTrail
