@@ -147,10 +147,10 @@ def search_databroker(search_dict):
     return result
 
 
-query_window = query_widget.QueryMainWindow(keys=search_keys_dict,
-                                            search_func=search_databroker,
-                                            add_func=add_to_canvas,
-                                            unique_id_func=gen_unique_id)
+# query_window = query_widget.QueryMainWindow(keys=search_keys_dict,
+#                                             search_func=search_databroker,
+#                                             add_func=add_to_canvas,
+#                                             unique_id_func=gen_unique_id)
 
 
 def setup_bnl_menu():
@@ -164,7 +164,8 @@ def setup_bnl_menu():
     bnl_menu = menu_bar.addMenu("BNL")
 
     def foo():
-        query_window.show()
+        #query_window.show()
+        print 'Menu Button Clicked.'
     bnl_menu.addAction("demo", foo)
 
 
