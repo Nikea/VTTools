@@ -262,7 +262,13 @@ def _type_optional(type_str):
 
 
 _ENUM_RE = re.compile('\{(.*)\}')
-_ARRAY_SHAPE = re.compile('\(([A-Za-z0-9]+, *)+,?\) *array')
+_ARRAY_SHAPE = re.compile('\(([A-Za-z0-9]+,? *)+,?\) *array')
+#   RE Details:
+#   WORKS: test_str5 = "(your, mother, was, a, hampster) array"
+#   WORKS: test_str5 = "(your, mother, was, a, hampster,) array"
+# TODO: We may want to make more thorough use of this RE by using the
+#   specified values inside the parentheses as an additional input or output
+#   port key (e.g. 2D, 3D, 1xN, NxN, NxM, LxMxN, etc.)
 
 
 def _enum_type(type_str):
