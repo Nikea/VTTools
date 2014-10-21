@@ -85,28 +85,116 @@ def test_type_optional():
 
 
 def test_enum_type():
+    """
+    Example function docstrings:
+    1) numpy.linalg.svd()
+        Parameters :
+            a : (..., M, N) array_like
+                A real or complex matrix of shape (M, N) .
+            full_matrices : bool, optional
+                If True (default), u and v have the shapes (M, M) and (N, N),
+                respectively. Otherwise, the shapes are (M, K) and (K, N),
+                respectively, where K = min(M, N).
+            compute_uv : bool, optional
+                Whether or not to compute u and v in addition to s. True by
+                default.
+        Returns :
+            u : { (..., M, M), (..., M, K) } array
+                Unitary matrices. The actual shape depends on the value of
+                full_matrices. Only returned when compute_uv is True.
+            s : (..., K) array
+                The singular values for every matrix, sorted in descending
+                order.
+            v : { (..., N, N), (..., K, N) } array
+                Unitary matrices. The actual shape depends on the value of
+                full_matrices. Only returned when compute_uv is True.
+    """
     test_str1 = '{True, False, Maybe}'
     test_str2 = 'array'
     test_str3 = '{true, FALSE, 452}'
     test_str4 = '{12.5, 5.3}'
+    test_str5 = '{ (..., M, M), (..., M, K) } array'
+    test_str6 = '{ (..., N, N), (..., K, N) } array'
     assert_equal(wrap_lib._enum_type(test_str1)[1], True)
     assert_equal(wrap_lib._enum_type(test_str1)[2], ['True', 'False',
                                                     'Maybe'])
     assert_equal(wrap_lib._enum_type(test_str2)[1], False)
     assert_raises(ValueError, wrap_lib._enum_type, test_str3)
     assert_raises(ValueError, wrap_lib._enum_type, test_str4)
+    assert_equal(wrap_lib._enum_type(test_str5)[1], True)
+    assert_equal(wrap_lib._enum_type(test_str6)[1], True)
+
 
 def test_sized_array():
+    """
+    Example function docstrings:
+    1)  numpy.outer()
+       Parameters :
+        a : (M,) array_like
+            First input vector. Input is flattened if not already
+            1-dimensional.
+        b : (N,) array_like
+            Second input vector. Input is flattened if not already
+            1-dimensional.
+        Returns :
+        out : (M, N) ndarray
+    2) numpy.linalg.svd()
+        Parameters :
+            a : (..., M, N) array_like
+                A real or complex matrix of shape (M, N) .
+            full_matrices : bool, optional
+                If True (default), u and v have the shapes (M, M) and (N, N),
+                respectively. Otherwise, the shapes are (M, K) and (K, N),
+                respectively, where K = min(M, N).
+            compute_uv : bool, optional
+                Whether or not to compute u and v in addition to s. True by
+                default.
+        Returns :
+            u : { (..., M, M), (..., M, K) } array
+                Unitary matrices. The actual shape depends on the value of
+                full_matrices. Only returned when compute_uv is True.
+            s : (..., K) array
+                The singular values for every matrix, sorted in descending
+                order.
+            v : { (..., N, N), (..., K, N) } array
+                Unitary matrices. The actual shape depends on the value of
+                full_matrices. Only returned when compute_uv is True.
+    """
     #This string should be stripped and assigned as a basic array
-    test_str1 = 'NxMxP 3D array'
+    test_str1 = '(NxMxP) 3D array'
     #This string should pass through this function without processing
     # or modification (should pass through unscathed)
     test_str2 = 'ndarray'
     assert_equal(wrap_lib._sized_array(test_str1), 'array')
     assert_equal(wrap_lib._sized_array(test_str2), 'ndarray')
 
+def test_ENUM_RE():
 
-    pass
+    test_str1 = "{half, a, shekel, for, an, old, ex-lepper}" WORKS
+    test_str2 = "half, a, shekel, for, an, old, ex-lepper" FAILS
+    test_str3 = "(half, a, shekel, for, an, old, ex-lepper)"FAILS
+    test_str4 = "{half a shekel for an old ex-lepper}" FAILS
+    test_str5 = "{half a, shekel, for, an, old, ex-lepper}"FAILS
+
+
+def test_ARRAY_SHAPE():
+    test_str1 = "(your, mother, was, a, hampster) array"
+    test_str2 = "(your, mother, was, a, hampster,) array"
+    test_str3 = "(your, mother, was, a, hampster,) (and) (your, father, " \
+                "smells, of, elderberries) array"
+    test_str4 = "your, mother, was, a, hampster array"
+    test_str5 = "your, father, smells, of, elderberries"
+
+
+test_obj_src()
+test_pytype_to_vtsig()
+test_pytype_to_vtsig_error()
+test_type_optional()
+test_enum_type()
+test_sized_array()
+
+
+pass
 
 
 def test_check_alt_types():
