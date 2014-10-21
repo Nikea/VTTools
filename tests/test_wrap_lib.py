@@ -161,29 +161,25 @@ def test_sized_array():
                 full_matrices. Only returned when compute_uv is True.
     """
     #This string should be stripped and assigned as a basic array
-    test_str1 = '(NxMxP) 3D array'
+    test_str1 = '(N, M, P) array' #PASS
+    test_str2 = '(..., K) array' #PASS
+    test_str3 = '(..., M, N) array_like' #PASS
+    test_str4 = '(N, M, P) ndarray' #PASS
     #This string should pass through this function without processing
     # or modification (should pass through unscathed)
-    test_str2 = 'ndarray'
+    test_str5 = '(N M, P) ndarray' #FAIL
+    test_str6 = 'ndarray' #FAIL
+    test_str7 = '(M,) array_like' #PASS
+    test_str8 = '(M) array_like' #PASS
+
     assert_equal(wrap_lib._sized_array(test_str1), 'array')
-    assert_equal(wrap_lib._sized_array(test_str2), 'ndarray')
-
-def test_ENUM_RE():
-
-    test_str1 = "{half, a, shekel, for, an, old, ex-lepper}" WORKS
-    test_str2 = "half, a, shekel, for, an, old, ex-lepper" FAILS
-    test_str3 = "(half, a, shekel, for, an, old, ex-lepper)"FAILS
-    test_str4 = "{half a shekel for an old ex-lepper}" FAILS
-    test_str5 = "{half a, shekel, for, an, old, ex-lepper}"FAILS
-
-
-def test_ARRAY_SHAPE():
-    test_str1 = "(your, mother, was, a, hampster) array"
-    test_str2 = "(your, mother, was, a, hampster,) array"
-    test_str3 = "(your, mother, was, a, hampster,) (and) (your, father, " \
-                "smells, of, elderberries) array"
-    test_str4 = "your, mother, was, a, hampster array"
-    test_str5 = "your, father, smells, of, elderberries"
+    assert_equal(wrap_lib._sized_array(test_str2), 'array')
+    assert_equal(wrap_lib._sized_array(test_str3), 'array')
+    assert_equal(wrap_lib._sized_array(test_str4), 'array')
+    assert_equal(wrap_lib._sized_array(test_str5), '(N M, P) ndarray')
+    assert_equal(wrap_lib._sized_array(test_str6), 'ndarray')
+    assert_equal(wrap_lib._sized_array(test_str7), 'array')
+    assert_equal(wrap_lib._sized_array(test_str8), 'array')
 
 
 test_obj_src()
@@ -192,9 +188,6 @@ test_pytype_to_vtsig_error()
 test_type_optional()
 test_enum_type()
 test_sized_array()
-
-
-pass
 
 
 def test_check_alt_types():
