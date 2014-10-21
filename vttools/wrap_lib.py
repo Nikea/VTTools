@@ -262,7 +262,8 @@ def _type_optional(type_str):
 
 
 _ENUM_RE = re.compile('\{(.*)\}')
-_ARRAY_SHAPE = re.compile('\(([A-Za-z0-9]+,? *)+,?\) *array')
+_ARRAY_SHAPE = re.compile('\(([A-Za-z0-9]+,? *)+,?\) '
+                          '*array|ndarray|array_like')
 #   RE Details:
 #   WORKS: test_str5 = "(your, mother, was, a, hampster) array"
 #   WORKS: test_str5 = "(your, mother, was, a, hampster,) array"
@@ -296,9 +297,15 @@ def _enum_type(type_str):
         guessed_types = [_guess_type(_) for _ in enum_list]
         type_out = guessed_types[0]
         if not all(_ == type_out for _ in guessed_types[1:]):
-            raise ValueError('mixed type enum, wtf mate')
+            raise ValueError('Mixed type enum, docstring parameters are '
+                             'improperly defined. Please fix and create pull '
+                             'request, or report this error to the Software '
+                             'Development Team.')
         if type_out not in ('int', 'str'):
-            raise ValueError('enum is not discrete, wtf mate')
+            raise ValueError('Enum is not discrete, docstring parameters are '
+                             'improperly defined. Please fix and create pull '
+                             'request, or report this error to the Software '
+                             'Development Team.')
     else:
         is_enum = False
         enum_list = None
