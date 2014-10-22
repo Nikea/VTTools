@@ -262,8 +262,6 @@ def _type_optional(type_str):
 
 
 _ENUM_RE = re.compile('\{(.*)\}')
-#_ARRAY_SHAPE = re.compile('\(([A-Za-z0-9]+, *)+,?\) *(
-# array|ndarray|array_like)')
 _ARRAY_SHAPE = re.compile('\((([A-Za-z0-9]*[.]*, *)*[A-Za-z0-9]+,? *),?\) '
                           '*(array|ndarray|array_like)')
 #   RE Details:
