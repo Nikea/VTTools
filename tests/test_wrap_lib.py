@@ -198,6 +198,24 @@ def test_check_alt_types():
     assert_equal(wrap_lib._check_alt_types(test_str6), 'int')
 
 
+def test_truncate_description():
+    original_description1 = ['length of three']
+    original_description2 = ['This object is the original description ' \
+                           'stripped from the doc string. The object is ',
+                           'actually a list of strings.']
+    word_count = 6
+    #Test to make sure descriptions that are smaller than the
+    # specified word count pass through correctly
+    assert_equal(wrap_lib._truncate_description(original_description1,
+                                                word_count),
+                 'length of three')
+    #Test that function descriptions less than word_count are cropped and
+    # passed through correctly
+    assert_equal(wrap_lib._truncate_description(original_description2,
+                                                word_count),
+                 'This object is the original description')
+
+
 test_obj_src()
 test_pytype_to_vtsig()
 test_pytype_to_vtsig_error()
@@ -205,10 +223,7 @@ test_type_optional()
 test_enum_type()
 test_sized_array()
 test_check_alt_types()
-
-def test_truncate_description():
-    pass
-
+test_truncate_description()
 
 def test_guess_type():
     pass
