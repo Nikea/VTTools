@@ -393,7 +393,7 @@ def _truncate_description(original_description, word_cnt_to_include):
         short_description = (
             original_description[0].split(' ')[0:word_cnt_to_include]
             )
-    short_description = ' '.join(short_description)
+        short_description = ' '.join(short_description)
     return short_description
 
 
