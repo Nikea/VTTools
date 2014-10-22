@@ -182,17 +182,29 @@ def test_sized_array():
     assert_equal(wrap_lib._sized_array(test_str8), 'array')
 
 
+def test_check_alt_types():
+    test_str1 = 'float or int'
+    test_str2 = 'scalar or tuple of scalars'
+    test_str3 = 'int or scalar'
+    test_str4 = 'scalar or sequence of scalars'
+    test_str5 = 'MxN ndarray'
+    test_str6 = 'integer value'
+
+    assert_equal(wrap_lib._check_alt_types(test_str1), 'float')
+    assert_equal(wrap_lib._check_alt_types(test_str2), 'tuple')
+    assert_equal(wrap_lib._check_alt_types(test_str3), 'scalar')
+    assert_equal(wrap_lib._check_alt_types(test_str4), 'list')
+    assert_equal(wrap_lib._check_alt_types(test_str5), 'ndarray')
+    assert_equal(wrap_lib._check_alt_types(test_str6), 'int')
+
+
 test_obj_src()
 test_pytype_to_vtsig()
 test_pytype_to_vtsig_error()
 test_type_optional()
 test_enum_type()
 test_sized_array()
-
-
-def test_check_alt_types():
-    pass
-
+test_check_alt_types()
 
 def test_truncate_description():
     pass
