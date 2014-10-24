@@ -329,10 +329,10 @@ def _check_alt_types(type_str):
         int if and when required. It is expected that type casting where
         float instead of int will cause problems will have been explicitly
         stipulated to be int, without any ambiguity.
-    2) any complex type that includes the option to be a tuple will
-        automatically be cast to tuple. Thus far most of these cases state
-        that the input should be a scalar or a tuple, in which case the scalar
-        input will simply need to be repeated for each array dimension
+    2) any complicated or mixed type that includes the option to be a tuple
+        will automatically be cast to tuple. Thus far most of these cases
+        state that the input should be a scalar or a tuple, in which case the
+        scalar input will simply need to be repeated for each array dimension
         (e.g. (x,x,x) for a isotropic 3D array type, or (x,x) for a 2D array
         type.
     3) the most unique type cast thus far 'scalar or sequence of scalars'
