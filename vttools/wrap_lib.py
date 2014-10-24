@@ -423,7 +423,7 @@ def _guess_type(stringy_val):
         try:
             v(stringy_val)
             return k
-        except ValueError:  # I think it's a value error
+        except ValueError:
             pass
     # give up and assume it is a string
     return 'str'
