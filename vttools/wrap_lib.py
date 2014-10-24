@@ -354,17 +354,18 @@ def _check_alt_types(type_str):
     Record of Alternate Output Types
         'ndarray of bools' -- See: scipy.ndimage.morphology.binary_opening
     """
-    if 'float' in type_str and 'int' in type_str:
-        type_str = 'float'
-    elif 'tuple' in type_str:
+    if 'tuple' in type_str:
         type_str = 'tuple'
-    elif 'int' in type_str and 'float' not in type_str and 'tuple' not in \
-            type_str:
-        type_str = 'int'
     elif 'sequence' in type_str:
         type_str = 'list'
     elif 'ndarray' in type_str:
         type_str = 'ndarray'
+    elif 'scalar' in type_str:
+        type_str = 'scalar'
+    elif 'float' in type_str:
+        type_str = 'float'
+    elif 'int' in type_str or 'integer' in type_str:
+        type_str = 'int'
     return type_str
 
 
@@ -392,7 +393,7 @@ def _truncate_description(original_description, word_cnt_to_include):
         short_description = (
             original_description[0].split(' ')[0:word_cnt_to_include]
             )
-    short_description = ' '.join(short_description)
+        short_description = ' '.join(short_description)
     return short_description
 
 
