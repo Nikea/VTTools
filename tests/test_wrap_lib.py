@@ -216,17 +216,35 @@ def test_truncate_description():
                  'This object is the original description')
 
 
-test_obj_src()
-test_pytype_to_vtsig()
-test_pytype_to_vtsig_error()
-test_type_optional()
-test_enum_type()
-test_sized_array()
-test_check_alt_types()
-test_truncate_description()
 
 def test_guess_type():
-    pass
+    """
+    The function _guess_type() is used in the function _enum_type(). The
+    initial input is the stripped type string.
+    e.g. {14, 0.333, 5j, True, False, Maybe}
+    The input string is then checked to make sure that there are enclosing
+    curly braces, after which the enum string is separated out using the
+    commas, any string declarations are then removed (i.e. ' or "), and each
+    element of the original enum string is converted to an element of a list
+    of strings. Each of these separated elements are then entered into the
+    _guess_type() function.
+
+    All of these test strings are parameter types that should be caught and
+    evaluated using the _guess_type() function.
+    """
+    test_1 = '0.333'
+    test_2 = '14'
+    test_3 = '5j'
+    test_4 = 'False'
+    test_5 = 'Volume'
+    assert_equal(wrap_lib._guess_type(test_1), 'float')
+    assert_equal(wrap_lib._guess_type(test_2), 'int')
+    assert_equal(wrap_lib._guess_type(test_3), 'complex')
+    assert_equal(wrap_lib._guess_type(test_4), 'str') #Not sure how to get
+                                                      # this to eval to bool
+    assert_equal(wrap_lib._guess_type(test_5), 'str')
+
+
 
 
 def test_define_input_ports():
@@ -249,40 +267,12 @@ def test_wrap_class():
     pass
 
 
-
-def destroy(path):
-    try:
-        shutil.rmtree(path)
-    except WindowsError as whee:
-        call(['rmdir', '/S', path], shell=True)
-
-
-def test_make_symlink():
-    test_loc = os.path.join(os.path.expanduser('~'), 'symlinking_test')
-    try:
-        os.mkdir(test_loc)
-    except WindowsError as whee:
-        destroy(test_loc)
-        os.mkdir(test_loc)
-    src = open
-    link_name = 'link'
-    src = os.path.join(test_loc, link_name)
-    os.mkdir(src)
-    os.mkdir(os.path.join(test_loc, 'dst'))
-    dst = os.path.join(test_loc, 'dst', link_name)
-    # create a temporary file in the target location called `link_name`
-    with open(dst, 'w+') as tmp_file:
-        tmp_file.write('test')
-    assert_true(make_symlink(dst=dst, src=src, silently_move=True))
-    destroy(dst)
-    # make an empty temporary folder in the target location called `link_name`
-    os.mkdir(dst)
-    assert_true(make_symlink(dst=dst, src=src, silently_move=True))
-    destroy(dst)
-    # make a non-empty temporary tree in the target location called `link_name`
-    os.mkdir(dst)
-    os.mkdir(os.path.join(dst, 'sub_folder'))
-    assert_true(make_symlink(dst=dst, src=src, silently_move=True))
-    destroy(dst)
-
-    shutil.rmtree(test_loc)
+test_obj_src()
+test_pytype_to_vtsig()
+test_pytype_to_vtsig_error()
+test_type_optional()
+test_enum_type()
+test_sized_array()
+test_check_alt_types()
+test_truncate_description()
+test_guess_type()
