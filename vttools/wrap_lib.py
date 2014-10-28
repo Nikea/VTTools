@@ -59,6 +59,7 @@ class AutowrapError(Exception):
     '''
     pass
 
+
 def obj_src(py_obj, escape_docstring=True):
     """Get the source for the python object that gets passed in
 
@@ -391,11 +392,12 @@ def _truncate_description(original_description, word_cnt_to_include):
     if len(original_description) == 0:
         return ''
     short_description = original_description[0]
-    if len(original_description[0].split(' ')) > word_cnt_to_include:
-        short_description = (
-            original_description[0].split(' ')[0:word_cnt_to_include]
-            )
-        short_description = ' '.join(short_description)
+    # need this twice, might as well stash it
+    sd_words = short_description.split(' ')
+    # if it's too long, drop some words
+    if len(sd_words) > word_cnt_to_include:
+        short_description = ' '.join(sd_words[:word_cnt_to_include])
+
     return short_description
 
 
@@ -475,7 +477,7 @@ def define_input_ports(docstring, func):
         logger.debug("the_name is {0}. \n\tthe_type is {1} and it is "
                      "optional: {3}. \n\tthe_description is {2}"
                      "".format(the_name, the_type,
-                               ' '.join(short_description),
+                               short_description,
                                is_optional))
 
         for port_name in (_.strip() for _ in the_name.split(',')):
@@ -486,7 +488,7 @@ def define_input_ports(docstring, func):
             port_enum_list = enum_list
             # start with the easy ones
             pdict = {'name': port_name,
-                     'label': ' '.join(short_description),
+                     'label': short_description,
                      'optional': is_optional,
                      'signature': pytype_to_vtsig(param_type=port_type,
                                                   param_name=port_name)}
