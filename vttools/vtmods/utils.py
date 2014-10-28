@@ -43,7 +43,7 @@ from vistrails.core.modules.config import IPort, OPort
 from .broker import search_keys_dict
 from .broker import search
 import numpy as np
-from metadataStore.analysisapi.utility import listify, get_data_keys
+from metadataStore.utilities.utility import get_data_keys
 import logging
 logger = logging.getLogger(__name__)
 
@@ -147,10 +147,10 @@ def search_databroker(search_dict):
     return result
 
 
-#query_window = query_widget.QueryMainWindow(keys=search_keys_dict,
-#                                            search_func=search_databroker,
-#                                            add_func=add_to_canvas,
-#                                            unique_id_func=gen_unique_id)
+# query_window = query_widget.QueryMainWindow(keys=search_keys_dict,
+#                                             search_func=search_databroker,
+#                                             add_func=add_to_canvas,
+#                                             unique_id_func=gen_unique_id)
 
 
 def setup_bnl_menu():

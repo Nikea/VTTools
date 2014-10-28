@@ -42,6 +42,8 @@ import pprint
 import time
 import sys
 import logging
+import re
+from collections import OrderedDict
 from numpydoc.docscrape import FunctionDoc, ClassDoc
 from vistrails.core.modules.vistrails_module import (Module, ModuleSettings,
                                                      ModuleError)
@@ -57,6 +59,7 @@ class AutowrapError(Exception):
     '''
     pass
 
+
 def obj_src(py_obj, escape_docstring=True):
     """Get the source for the python object that gets passed in
 
@@ -64,6 +67,7 @@ def obj_src(py_obj, escape_docstring=True):
     ----------
     py_obj : obj
         Any python object
+
     escape_doc_string : bool
         If true, prepend the escape character to the docstring triple quotes
 
@@ -174,10 +178,12 @@ def docstring_func(pyobj):
 sig_map = {
     'ndarray': 'basic:Variant',
     'array': 'basic:Variant',
+    'array_like': 'basic:Variant',
     'np.ndarray': 'basic:Variant',
     'list': 'basic:List',
     'int': 'basic:Integer',
     'integer': 'basic:Integer',
+    'scalar': 'basic:Float',
     'float': 'basic:Float',
     'tuple': 'basic:Tuple',
     'dict': 'basic:Dictionary',
@@ -187,6 +193,7 @@ sig_map = {
     'numpy.dtype': 'basic:String',
     'np.dtype': 'basic:String',
     'dtype': 'basic:String',
+    'sequence': 'basic:List'
 }
 
 
@@ -197,6 +204,7 @@ def pytype_to_vtsig(param_type, param_name):
     ----------
     param_type : str
         The type of the parameter from the library function to be wrapped
+
     param_name : str
         The name of the parameter from the library function to be wrapped
 
@@ -221,57 +229,208 @@ def pytype_to_vtsig(param_type, param_name):
         # raise a value error
         raise ValueError("The arg_type doesn't match any of the options.  Your "
                          "arg_type is: {0}.  See the sig_type dictionary in "
-                         "userpackages/autowrap/wrap_lib.py".format(param_type))
+                         "VTTools/vttools/wrap_lib.py".format(param_type))
 
     return port_sig
 
 
-def create_port_params(port_name, port_label, port_type, wrapped_func,
-                       optional=False):
+def _type_optional(type_str):
     """
-    Create the parameter dictionary for an input port.
+    Helper function to sort out if a parameter is optional
 
-    The reason why this function exists is to deal with cases where an
-    enum port type is more appropriate.  In the rare cases when we actually
-    want an enum port, this function returns a dictionary that, when unpacked
-    into IPort() creates an enunm port
+    This assumes the type is given by a string that is compliant with
+    the numpydoc format.
 
     Parameters
     ----------
-    port_name : str
-        Name of the input port
-    port_label : str
-        Description of the input port
-    port_type : str
-        Stringly-typed VisTrails type
-    wrapped_func : function
-        The python function to be wrapped
-    optional : bool
-        Determines whether this port shows up by default
+    type_str : str
+        The type specification from the docstring
 
     Returns
     -------
-    param_dict : dict
-        Dictionary that should be unpacked into IPort() to create a port.
-        Depending on the k,v pairs in param_dict, the port that gets created
-        will be appropriate to `name` and `type`
+    type_str : str
+        The type specification with out the optional flag
+
+    is_optional : bool
+        If the input is optional
     """
-    logger.debug('create_port_params function input parameters: '
-                 'name is {0}\nlabel is {1}\nport_type is {2}\noptional is {3}'
-                 ''.format(port_name, port_label, port_type, optional))
-    # stash the easy input parameters
-    pdict = {'name': port_name, 'label': '/n'.join(port_label),
-             'optional': optional,
-             'signature': pytype_to_vtsig(param_type=port_type,
-                                          param_name=port_name)}
+    type_str = type_str.strip()
+    is_optional = type_str.endswith('optional')
+    if is_optional:
+        type_str = type_str[:-8].strip(', ')
 
-    if hasattr(wrapped_func, port_name):
-        #todo for enums I'm not sure if the VisTrails port signature has to be 'string'
-        # pdict['signature'] = pytype_to_vtsig(port_type)
-        pdict['entry_type'] = 'enum'
-        pdict['values'] = getattr(wrapped_func, port_name)
+    return type_str, is_optional
 
-    return pdict
+
+_ENUM_RE = re.compile('\{(.*)\}')
+_ARRAY_SHAPE = re.compile('\((([A-Za-z0-9]*[.]*, *)*[A-Za-z0-9]+,? *),?\) '
+                          '*(array|ndarray|array_like)')
+#   RE Details:
+#   WORKS: test_str5 = "(your, mother, was, a, hampster) array"
+#   WORKS: test_str5 = "(your, mother, was, a, hampster,) array"
+# TODO: We may want to make more thorough use of this RE by using the
+#   specified values inside the parentheses as an additional input or output
+#   port key (e.g. 2D, 3D, 1xN, NxN, NxM, LxMxN, etc.)
+
+
+def _enum_type(type_str):
+    """
+    Helper function to check if the docstring enumerates options
+
+    Parameters
+    ----------
+    type_str : str
+        String specifying the input type. This string was stripped from the
+        numpydoc string.
+
+    Returns
+    -------
+    type_out : str
+        The type of the input suitable for translation to VT types
+
+    is_enum : bool
+        Boolean switch specifying whether inputs include enumerated options.
+    """
+    m = _ENUM_RE.search(type_str)
+    if bool(m):
+        is_enum = True
+        enum_list = [_.strip('\'\" ') for _ in m.group(1).split(',')]
+        guessed_types = [_guess_type(_) for _ in enum_list]
+        type_out = guessed_types[0]
+        if not all(_ == type_out for _ in guessed_types[1:]):
+            raise ValueError('Mixed type enum, docstring parameters are '
+                             'improperly defined. Please fix and create pull '
+                             'request, or report this error to the Software '
+                             'Development Team.')
+        if type_out not in ('int', 'str'):
+            raise ValueError('Enum is not discrete, docstring parameters are '
+                             'improperly defined. Please fix and create pull '
+                             'request, or report this error to the Software '
+                             'Development Team.')
+    else:
+        is_enum = False
+        enum_list = None
+        type_out = type_str
+
+    return type_out, is_enum, enum_list
+
+
+def _sized_array(type_str):
+    if bool(_ARRAY_SHAPE.search(type_str)):
+        return 'array'
+    return type_str
+
+
+def _check_alt_types(type_str):
+    """
+    This function checks for, and enables proper sorting of unique or
+    atypical input types. The hierarchy devised thus far:
+    1) input type strings stating float or int automatically cast to float,
+        since most operations will interpret or convert a float input to an
+        int if and when required. It is expected that type casting where
+        float instead of int will cause problems will have been explicitly
+        stipulated to be int, without any ambiguity.
+    2) any complicated or mixed type that includes the option to be a tuple
+        will automatically be cast to tuple. Thus far most of these cases
+        state that the input should be a scalar or a tuple, in which case the
+        scalar input will simply need to be repeated for each array dimension
+        (e.g. (x,x,x) for a isotropic 3D array type, or (x,x) for a 2D array
+        type.
+    3) the most unique type cast thus far 'scalar or sequence of scalars'
+        will simply cast to scalar, unless we run into problems where this won't
+        work.
+
+    Parameters
+    ----------
+    type_str : str
+        variable type stripped from original doc string
+
+    Returns
+    -------
+    output : str
+        corrected variable type for proper wrapping into vistrails
+
+    Notes
+    -----
+    Record of Alternate Output Types
+        'ndarray of bools' -- See: scipy.ndimage.morphology.binary_opening
+    """
+    if 'tuple' in type_str:
+        type_str = 'tuple'
+    elif 'sequence' in type_str:
+        type_str = 'list'
+    elif 'ndarray' in type_str:
+        type_str = 'ndarray'
+    elif 'scalar' in type_str:
+        type_str = 'scalar'
+    elif 'float' in type_str:
+        type_str = 'float'
+    elif 'int' in type_str or 'integer' in type_str:
+        type_str = 'int'
+    return type_str
+
+
+def _truncate_description(original_description, word_cnt_to_include):
+    """
+    This function will truncate the stripped doc string to a more manageable
+    length for incorporation into wrapped vistrails functions
+
+    Parameters
+    ----------
+    original_description : list
+        This object is the original description stripped from the
+        doc string. The object is actually a list of strings.
+
+    word_cnt_to_include : int
+        specify the number of words to trim the description down to
+
+    Returns
+    -------
+    short_description : string
+        truncated description that will be passed into vistrails
+    """
+    if len(original_description) == 0:
+        return ''
+    short_description = original_description[0]
+    # need this twice, might as well stash it
+    sd_words = short_description.split(' ')
+    # if it's too long, drop some words
+    if len(sd_words) > word_cnt_to_include:
+        short_description = ' '.join(sd_words[:word_cnt_to_include])
+
+    return short_description
+
+
+def _guess_type(stringy_val):
+    """
+    Helper function to guess the type of values in an enum are.
+
+    At this point it tries int, float, and complex and then assumes it is
+    a string.
+
+    Parameters
+    ----------
+    stringy_val : str
+        The value to guess the type of
+
+    Returns
+    -------
+    type_str : {'int', 'float', 'complex', 'str'}
+        The guessed type as a string.
+    """
+    od = OrderedDict()
+    od['int'] = int
+    od['float'] = float
+    od['complex'] = complex
+
+    for k, v in six.iteritems(od):
+        try:
+            v(stringy_val)
+            return k
+        except ValueError:  # I think it's a value error
+            pass
+    # give up and assume it is a string
+    return 'str'
 
 
 def define_input_ports(docstring, func):
@@ -279,7 +438,7 @@ def define_input_ports(docstring, func):
 
     Parameters
     ----------
-    docstring : NumpyDocString
+    docstring : NumpyDocString #List of strings?
         The scraped docstring from the
 
     func : function
@@ -291,59 +450,94 @@ def define_input_ports(docstring, func):
         List of input_ports (Vistrails type IPort)
     """
     input_ports = []
-    if 'Parameters' in docstring:
-        for (the_name, the_type, the_description) in docstring['Parameters']:
-            optional = False
-            the_type = the_type.split(',')
-            if len(the_type) == 1:
-                the_type = the_type[0].lower()
-            elif (len(the_type) == 2 and
-                  the_type[1].strip().lower() == 'optional'):
-                # optional = the_type[1].strip()
-                # logger.debug('after stripping: [{0}]'.format(optional))
-                # if the_type[1].strip().lower() is 'optional':
-                optional = True
-                the_type = the_type[0]
-            elif len(the_type) is not 1:
-                # logger.debug('the_type[1][0:1]: {0}'.format(the_type[1][0:1]))
-                raise ValueError("There are two fields for the type in the"
-                                 " numpy doc string, but I don't "
-                                 "understand what the second variable "
-                                 "is. Expected either 'type' or 'type, "
-                                 "optional'. Anything else is incorrect. "
-                                 "You passed in: {0}".format(the_type))
-
-            logger.debug("the_name is {0}. \n\tthe_type is {1} and it is "
-                         "optional: {3}. \n\tthe_description is {2}"
-                         "".format(the_name, the_type,
-                                   '/n'.join(the_description),
-                                   optional))
-
-            port_param_dict = create_port_params(port_name=the_name,
-                                                 port_label=the_description,
-                                                 port_type=the_type,
-                                                 optional=optional,
-                                                 wrapped_func=func)
-            logger.debug('port_param_dict: {0}'.format(port_param_dict))
-            input_ports.append(IPort(**port_param_dict))
-    else:
+    short_description_word_count = 4
+    if 'Parameters' not in docstring:
         # raised if 'Parameters' is not in the docstring
         raise KeyError('Docstring is not formatted correctly. There is no '
                        '"Parameters" field. Your docstring: {0}'
                        ''.format(docstring))
 
-    logger.debug('dir of input_ports[0]: {0}'.format(dir(input_ports[0])))
+    for (the_name, the_type, the_description) in docstring['Parameters']:
+        if the_name == 'output':
+            continue
+        the_type, is_optional = _type_optional(the_type)
+        the_type, is_enum, enum_list = _enum_type(the_type)
+        the_type = _sized_array(the_type)
 
+        # Accounts for extraneous notes or lines in doc string that are not
+        # actually input or output parameters
+        if the_type == '':
+            continue
+        # Finish checking for alternate, complicated, or unique doc types
+        the_type = _check_alt_types(the_type)
+        # Trim parameter descriptions for incorporation into vistrails
+        short_description = _truncate_description(the_description,
+                                                  short_description_word_count)
+
+        logger.debug("the_name is {0}. \n\tthe_type is {1} and it is "
+                     "optional: {3}. \n\tthe_description is {2}"
+                     "".format(the_name, the_type,
+                               short_description,
+                               is_optional))
+
+        for port_name in (_.strip() for _ in the_name.split(',')):
+            if not port_name:
+                continue
+            port_type = the_type
+            port_is_enum = is_enum
+            port_enum_list = enum_list
+            # start with the easy ones
+            pdict = {'name': port_name,
+                     'label': short_description,
+                     'optional': is_optional,
+                     'signature': pytype_to_vtsig(param_type=port_type,
+                                                  param_name=port_name)}
+
+            # deal with if the function as an enum attribute
+            if hasattr(func, port_name):
+                f_enums = getattr(func, port_name)
+                if port_is_enum:
+                    # if we already think this is an enum, make sure they
+                    # match
+                    if len(f_enums) != len(enum_list):
+                        raise ValueError('Attempting to automatically create '
+                                         'an enum port for the function named'
+                                         ' {0}. The values for the enum port '
+                                         'defined in the doc string are {1} '
+                                         'with length {2} and there is a '
+                                         'function attribute with values {3} '
+                                         'and length {4}.  Please make sure '
+                                         'the values in the docstring agree '
+                                         'with the values in the function '
+                                         'attribute, as I\'m not sure which '
+                                         'to use.'.format(the_name,
+                                                          enum_list,
+                                                          len(enum_list),
+                                                          f_enums,
+                                                          len(f_enums)))
+                port_enum_list = f_enums
+                port_is_enum = True
+            if port_is_enum:
+                pdict['entry_type'] = 'enum'
+                pdict['values'] = port_enum_list
+
+            logger.debug('port_param_dict: {0}'.format(pdict))
+            input_ports.append(IPort(**pdict))
+
+    if len(input_ports) == 0:
+        logger.debug('dir of input_ports[0]: {0}'.format(dir(input_ports[0])))
     return input_ports
 
 
 def define_output_ports(docstring):
-    """Turn the 'Returns' fields into VisTrails output ports
+    """
+    Turn the 'Returns' fields into VisTrails output ports
 
     Parameters
     ----------
-    docstring : NumpyDocString
-        The scraped docstring from the
+    docstring : NumpyDocString #List of strings?
+        The scraped docstring from the function being autowrapped into
+        vistrails
 
     Returns
     -------
@@ -352,34 +546,66 @@ def define_output_ports(docstring):
     """
 
     output_ports = []
-    if 'Parameters' in docstring:
-        for (the_name, the_type, the_description) in docstring['Returns']:
-            logger.debug("the_name is {0}. \n\tthe_type is {1}. "
-                         "\n\tthe_description is {2}"
-                         "".format(the_name, the_type, the_description))
-            try:
-                signature = pytype_to_vtsig(param_type=the_type,
-                                            param_name=the_name)
-            except ValueError as ve:
-                logger.error('ValueError raised for Returns parameter with '
-                             'name: {0}\n\ttype: {1}\n\tdescription: {2}'
-                             ''.format(the_name, the_type, the_description))
-                raise ValueError(ve)
+    # Check to make sure that there is a 'Returns' section in the docstring
+    if len(docstring['Returns']) == 0:
+        # If the 'Returns' section is included, but does not have any
+        # parameters listed, then check the 'Parameters' section to see
+        # whether the output is actually included as an optional input
+        for (the_name, the_type, the_description) in docstring['Parameters']:
+            if the_name.lower() == 'output':
+                the_type, is_optional = _type_optional(the_type)
+                the_type, is_enum, enum_list = _enum_type(the_type)
+                the_type = _sized_array(the_type)
+                # Accounts for extraneous notes or lines in doc string that are not
+                # actually input or output parameters
+                if the_type == '':
+                    continue
+                # Finish checking for alternate, complicated, or unique doc types
+                the_type = _check_alt_types(the_type)
+                output_ports.append(OPort(name=the_name,
+                                          signature=pytype_to_vtsig(
+                                              param_type=the_type,
+                                              param_name=the_name)))
+    elif 'Returns' not in docstring:
+        # Verify that output was not included in the 'Parameters' section
+        for (the_name, the_type, the_description) in docstring['Parameters']:
+            if the_name.lower() == 'output':
+                the_type, is_optional = _type_optional(the_type)
+                the_type, is_enum, enum_list = _enum_type(the_type)
+                the_type = _sized_array(the_type)
+                if the_type == '':
+                    continue
+                the_type = _check_alt_types(the_type)
+                output_ports.append(OPort(name=the_name,
+                                          signature=pytype_to_vtsig(
+                                              param_type=the_type,
+                                              param_name=the_name)))
+        # Now, if output_ports remains empty, then KeyError gets raised.
+        if len(output_ports) == 0:
+            raise KeyError('Docstring is not formatted correctly. '
+                           'There is no "Returns" field. '
+                           'Your docstring: {0}'.format(docstring))
+    for (the_name, the_type, the_description) in docstring['Returns']:
+        the_type, is_optional = _type_optional(the_type)
+        the_type, is_enum, enum_list = _enum_type(the_type)
+        the_type = _sized_array(the_type)
+        if the_type == '':
+            continue
+        the_type = _check_alt_types(the_type)
 
+        logger.debug("the_name is {0}. \n\tthe_type is {1}. "
+                     "\n\tthe_description is {2}"
+                     "".format(the_name, the_type, the_description))
+        try:
             output_ports.append(OPort(name=the_name,
                                       signature=pytype_to_vtsig(
                                           param_type=the_type,
                                           param_name=the_name)))
-    else:
-        # raised if 'Returns' is not in the docstring.
-        # This should probably just create an empty list if there is no
-        # Returns field in the docstring. Though if there is no returns field,
-        # why would we be wrapping the module automatically... what to do...
-        # What. To. Do.?
-        raise KeyError('Docstring is not formatted correctly. There is no '
-                       '"Returns" field. Your docstring: {0}'
-                       ''.format(docstring))
-
+        except ValueError as ve:
+            logger.error('ValueError raised for Returns parameter with '
+                         'name: {0}\n\ttype: {1}\n\tdescription: {2}'
+                         ''.format(the_name, the_type, the_description))
+            six.reraise(ValueError, ve, sys.exc_info()[2])
     return output_ports
 
 
@@ -466,13 +692,16 @@ def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
     ----------
     func_name : str
         Name of the function to wrap into VisTrails. Example 'grid3d'
+
     module_path : str
         Name of the module which contains the function. Example: 'nsls2.core'
+
     add_input_dict : bool, optional
         Flag that instructs the wrapping machinery to add a dictionary input
         port to the resultant VisTrails module. This dictionary port is
         solely a convenience function whose main purpose is to unpack the
         dictionary into the wrapped function
+
     namespace : str
         Path to the function in VisTrails.  This should be a string separated
         by vertical bars: |.  Example: 'vis|test' will put the new VisTrail

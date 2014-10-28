@@ -106,6 +106,10 @@ def make_symlink(dst, src, silently_move=False):
     http://stackoverflow.com/questions/15258506/os-path-islink-on-windows
     -with-python
     """
+    dst_dir = os.path.dirname(dst.rstrip(os.path.sep))
+    if not os.path.isdir(dst_dir):
+        os.makedirs(dst_dir)
+
     # get a temporary directory
     if os.path.exists(dst):
         if silently_move or (((os.path.isfile(dst) or (os.path.isdir(dst)) and
@@ -124,7 +128,7 @@ def make_symlink(dst, src, silently_move=False):
     try:
         # symlink the NSLS-II folder into userpackages
         os.symlink(src, dst)
-    except AttributeError as ae:
+    except AttributeError:
         # you must be on Windows!
         call(['mklink', '/j', dst, src], shell=True)
 

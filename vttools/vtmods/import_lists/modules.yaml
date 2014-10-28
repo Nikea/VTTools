@@ -51,6 +51,9 @@ autowrap_func:
 - func_name: read_binary
   module_path: nsls2.io.binary
   namespace: io
+- func_name: convolve
+  module_path: numpy
+  namespace: numpy
 - func_name: gauss_fit
   module_path: nsls2.fitting.model.physics_model
   namespace: fitting
