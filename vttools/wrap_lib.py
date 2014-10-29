@@ -438,8 +438,9 @@ def define_input_ports(docstring, func):
 
     Parameters
     ----------
-    docstring : NumpyDocString #List of strings?
-        The scraped docstring from the
+    docstring : List of strings?
+        The scraped docstring from the NumpyDocString. This is the output of
+        docstring_func()
 
     func : function
         The actual python function

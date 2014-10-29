@@ -52,6 +52,25 @@ import numpy as np
 from numpy import interp
 from numpy.testing import assert_string_equal, assert_equal, assert_raises
 
+#Demo enum test function
+def eat_porridge(this_sucks, temperature, wtf):
+    """
+    Should we eat the porridge?
+
+    Parameters
+    ----------
+    temperature, porridge : {'too hot', 'too cold', 'just right'}
+        The temperature of the porridge
+
+    Returns
+    -------
+    bool
+        If we should eat the porridge
+    """
+    if temperature  not in {'too hot', 'too cold', 'just right'}:
+        raise ValueError("That isn't porridge!")
+    return temperature == 'just right'
+
 
 def test_obj_src():
     string_result = wrap_lib.obj_src(interp)
@@ -246,9 +265,24 @@ def test_guess_type():
 
 
 
+def test_docstring_func():
+    doc = wrap_lib.docstring_func(interp)
+    assert_equal(doc.get_func()[1], 'interp')
+
+
+def _remove_dict_key(src_dict, key):
+    result = dict(src_dict)
+    del result[key]
+    return result
+
 
 def test_define_input_ports():
-    pass
+    doc = wrap_lib.docstring_func(interp)
+    input_ports = wrap_lib.define_input_ports(doc._parsed_data, interp)
+    assert_equal(len(input_ports), 5)
+
+    no_param = _remove_dict_key(doc._parsed_data, 'Parameters')
+    assert_raises(KeyError, wrap_lib.define_input_ports, no_param, interp)
 
 
 def test_define_output_ports():
@@ -266,19 +300,6 @@ def test_wrap_function():
 def test_wrap_class():
     pass
 
+
 if __name__ == '__main__':
-    test_obj_src()
-    test_pytype_to_vtsig()
-    test_pytype_to_vtsig_error()
-    test_type_optional()
-    test_enum_type()
-    test_sized_array()
-    test_check_alt_types()
-    test_truncate_description()
-    test_guess_type()
-    # no-op, for now
-    test_define_input_ports()
-    test_define_output_ports()
-    test_gen_module()
-    test_wrap_function()
-    test_wrap_class()
+    pass
