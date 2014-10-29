@@ -90,6 +90,7 @@ def test_pytype_to_vtsig():
         assert_equal(wrap_lib.pytype_to_vtsig(param_type, param_name),
                             wrap_lib.sig_map[param_type])
 
+
 def test_pytype_to_vtsig_error():
     param_name = 'FSM'
     param_type = 'outer_space'
