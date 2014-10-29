@@ -97,11 +97,16 @@ def test_pytype_to_vtsig_error():
     assert_raises(ValueError, wrap_lib.pytype_to_vtsig, param_type, param_name)
 
 
+def _optional_test_helper(tst, tar):
+    assert_equal(wrap_lib._type_optional(tst)[1], tar)
+
+
 def test_type_optional():
-    test_string1 = 'array, optional'
-    test_string2 = 'array'
-    assert_equal(wrap_lib._type_optional(test_string1)[1], True)
-    assert_equal(wrap_lib._type_optional(test_string2)[1], False)
+    test_string = ('array, optional', 'array')
+    targets = (True, False)
+
+    for tst, tar in zip(test_string, targets):
+        yield _optional_test_helper, tst, tar
 
 
 def test_enum_type():
@@ -220,21 +225,24 @@ def test_check_alt_types():
 
 def test_truncate_description():
     original_description1 = ['length of three']
-    original_description2 = ['This object is the original description ' \
+    original_description2 = ['This object is the original description '
                            'stripped from the doc string. The object is ',
                            'actually a list of strings.']
     word_count = 6
-    #Test to make sure descriptions that are smaller than the
+    # Test to make sure descriptions that are smaller than the
     # specified word count pass through correctly
     assert_equal(wrap_lib._truncate_description(original_description1,
                                                 word_count),
                  'length of three')
-    #Test that function descriptions less than word_count are cropped and
+    # Test that function descriptions less than word_count are cropped and
     # passed through correctly
     assert_equal(wrap_lib._truncate_description(original_description2,
                                                 word_count),
                  'This object is the original description')
 
+
+def _func_helper(func, test_string, expected_string):
+    assert_equal(func(test_string), expected_string)
 
 
 def test_guess_type():
@@ -252,55 +260,8 @@ def test_guess_type():
     All of these test strings are parameter types that should be caught and
     evaluated using the _guess_type() function.
     """
-    test_1 = '0.333'
-    test_2 = '14'
-    test_3 = '5j'
-    test_4 = 'False'
-    test_5 = 'Volume'
-    assert_equal(wrap_lib._guess_type(test_1), 'float')
-    assert_equal(wrap_lib._guess_type(test_2), 'int')
-    assert_equal(wrap_lib._guess_type(test_3), 'complex')
-    assert_equal(wrap_lib._guess_type(test_4), 'str') #Not sure how to get
-                                                      # this to eval to bool
-    assert_equal(wrap_lib._guess_type(test_5), 'str')
+    test_strting = ('0.333', '14', '5j', 'Volume')
+    target_strings = ('float', 'int', 'complex', 'str')
 
-
-
-def test_docstring_func():
-    doc = wrap_lib.docstring_func(interp)
-    assert_equal(doc.get_func()[1], 'interp')
-
-
-def _remove_dict_key(src_dict, key):
-    result = dict(src_dict)
-    del result[key]
-    return result
-
-
-def test_define_input_ports():
-    doc = wrap_lib.docstring_func(interp)
-    input_ports = wrap_lib.define_input_ports(doc._parsed_data, interp)
-    assert_equal(len(input_ports), 5)
-
-    no_param = _remove_dict_key(doc._parsed_data, 'Parameters')
-    assert_raises(KeyError, wrap_lib.define_input_ports, no_param, interp)
-
-
-def test_define_output_ports():
-    pass
-
-
-def test_gen_module():
-    pass
-
-
-def test_wrap_function():
-    pass
-
-
-def test_wrap_class():
-    pass
-
-
-if __name__ == '__main__':
-    pass
+    for tst, tar in zip(test_strting, target_strings):
+        yield _func_helper, wrap_lib._guess_type, tst, tar
