@@ -56,14 +56,33 @@ def eat_porridge(this_sucks, temperature, wtf):
     temperature, porridge : {'too hot', 'too cold', 'just right'}
         The temperature of the porridge
 
-    Returns
-    -------
-    bool
+    output : bool
         If we should eat the porridge
     """
     if temperature  not in {'too hot', 'too cold', 'just right'}:
         raise ValueError("That isn't porridge!")
     return temperature == 'just right'
+
+def porridge_for_the_bears(were_you_robbed):
+    """
+    Did Goldie Locks break in and rob you?
+
+    Parameters
+    ----------
+    were_you_robbed : bool
+        The question is in the title
+
+    Returns
+    _______
+    p_bear_emo, m_bear_emo, b_bear_emo : string
+        The emotional status of the three bears
+    """
+    if were_you_robbed == True:
+        p_bear_emo = 'angry'
+        m_bear_emo, b_bear_emo = 'sad', 'sad'
+    else:
+        p_bear_emo, m_bear_emo, b_bear_emo = 'angry', 'happy', 'happy'
+    return p_bear_emo, m_bear_emo, b_bear_emo
 
 
 def test_obj_src():
