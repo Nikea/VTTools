@@ -38,7 +38,6 @@ from __future__ import (absolute_import, division,
 import six
 import inspect
 import importlib
-import pprint
 import time
 import sys
 import logging
@@ -48,7 +47,6 @@ from numpydoc.docscrape import FunctionDoc, ClassDoc
 from vistrails.core.modules.vistrails_module import (Module, ModuleSettings,
                                                      ModuleError)
 from vistrails.core.modules.config import IPort, OPort
-import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -175,28 +173,6 @@ def docstring_func(pyobj):
                          "type(pyobj)".format(type(pyobj)))
 
 
-sig_map = {
-    'ndarray': 'basic:Variant',
-    'array': 'basic:Variant',
-    'array_like': 'basic:Variant',
-    'np.ndarray': 'basic:Variant',
-    'list': 'basic:List',
-    'int': 'basic:Integer',
-    'integer': 'basic:Integer',
-    'scalar': 'basic:Float',
-    'float': 'basic:Float',
-    'tuple': 'basic:Tuple',
-    'dict': 'basic:Dictionary',
-    'bool': 'basic:Boolean',
-    'str': 'basic:String',
-    'string': 'basic:String',
-    'numpy.dtype': 'basic:String',
-    'np.dtype': 'basic:String',
-    'dtype': 'basic:String',
-    'sequence': 'basic:List'
-}
-
-
 def pytype_to_vtsig(param_type, param_name):
     """Transform 'arg_type' into a vistrails port signature
 
@@ -227,8 +203,10 @@ def pytype_to_vtsig(param_type, param_name):
     if port_sig is None:
         # if no arg_type matches the pytypes that relate to VisTrails port sigs
         # raise a value error
-        raise ValueError("The arg_type doesn't match any of the options.  Your "
-                         "arg_type is: {0}.  See the sig_type dictionary in "
+        raise ValueError("The arg_type doesn't match any of the options.  "
+                         "Your "
+                         "arg_type is: \n\n\t{0}\n\nSee the sig_type "
+                         "dictionary in "
                          "VTTools/vttools/wrap_lib.py".format(param_type))
 
     return port_sig
@@ -254,17 +232,72 @@ def _type_optional(type_str):
     is_optional : bool
         If the input is optional
     """
-    type_str = type_str.strip()
+    type_str = type_str.strip(' .')
     is_optional = type_str.endswith('optional')
     if is_optional:
         type_str = type_str[:-8].strip(', ')
 
     return type_str, is_optional
 
-
 _ENUM_RE = re.compile('\{(.*)\}')
-_ARRAY_SHAPE = re.compile('\((([A-Za-z0-9]*[.]*, *)*[A-Za-z0-9]+,? *),?\) '
-                          '*(array|ndarray|array_like)')
+_RE_DICT = {
+    "object": re.compile('^(?i)(any|object)$'),
+    "array": re.compile('^(?i)(\(((([A-Z0-9.]+,? *)+)|, ?)\))? *(((np|numpy)\.)?(nd)?array(_|-| )?(like)?)$'),  # noqa,
+    "matrix": re.compile('^(?i)(\((([A-Z0-9.]+,? *){2} ?)\))? *(((np|numpy)\.)?matrix(_|-| )?(like)?)$'),  # noqa,
+    # note these three do not match end so 'list of ... ' matches
+    "list": re.compile('^(?i)list(-|_| )?(like)?'),
+    "tuple": re.compile('^(?i)tuple(-|_| )?(like)?'),
+    "seq": re.compile('^(?i)sequence(-|_| )?(like)?'),
+    "dtype": re.compile('^(?i)((np|numpy)\.)?dtype(-|_| )?(like)?$'),
+    "bool": re.compile('^(?i)bool(ean)?$'),
+    "file": re.compile('^(?i)file?$'),
+    "scalar": re.compile('^(?i)scalar?$'),
+    "float": re.compile('^(?i)(((np|numpy)\.)?float(16|32|64|128)?|double|single)$'),  # noqa,
+    "int": re.compile('^(?i)((np|numpy)\.)?u?int(eger)?(8|16|32|64)?$'),
+    "complex": re.compile('^(?i)complex$'),
+    "dict": re.compile('^(?i)dict(ionary)?$'),
+    "str": re.compile('^(?i)str(ing)?$'),
+    'callable': re.compile('^(?i)(func(tion)?|callable)$'),
+}
+
+sig_map = {
+    'object': 'basic:Variant',
+    'array': 'basic:Variant',
+    'matrix': 'basic:Variant',
+    'list': 'basic:List',
+    'tuple': 'basic:Tuple',
+    'seq': 'basic:List',
+    'dtype': 'basic:String',
+    'bool': 'basic:Boolean',
+    'file': 'basic:File',
+    'scalar': 'basic:Float',
+    'float': 'basic:Float',
+    'int': 'basic:Integer',
+    'complex': 'basic:Complex',
+    'dict': 'basic:Dictionary',
+    'str': 'basic:String',
+    'callable': 'basic:Variant'
+}
+
+
+precedence_list = ('list',
+                       'tuple',
+                       'seq',
+                       'dict',
+                       'array',
+                       'matrix',
+                       'dtype',
+                       'str',
+                       'scalar',
+                       'complex',
+                       'float',
+                       'int',
+                       'bool',
+                       'file',
+                       'callable',
+                       'object')
+
+
 #   RE Details:
 #   WORKS: test_str5 = "(your, mother, was, a, hampster) array"
 #   WORKS: test_str5 = "(your, mother, was, a, hampster,) array"
@@ -313,61 +346,6 @@ def _enum_type(type_str):
         type_out = type_str
 
     return type_out, is_enum, enum_list
-
-
-def _sized_array(type_str):
-    if bool(_ARRAY_SHAPE.search(type_str)):
-        return 'array'
-    return type_str
-
-
-def _check_alt_types(type_str):
-    """
-    This function checks for, and enables proper sorting of unique or
-    atypical input types. The hierarchy devised thus far:
-    1) input type strings stating float or int automatically cast to float,
-        since most operations will interpret or convert a float input to an
-        int if and when required. It is expected that type casting where
-        float instead of int will cause problems will have been explicitly
-        stipulated to be int, without any ambiguity.
-    2) any complicated or mixed type that includes the option to be a tuple
-        will automatically be cast to tuple. Thus far most of these cases
-        state that the input should be a scalar or a tuple, in which case the
-        scalar input will simply need to be repeated for each array dimension
-        (e.g. (x,x,x) for a isotropic 3D array type, or (x,x) for a 2D array
-        type.
-    3) the most unique type cast thus far 'scalar or sequence of scalars'
-        will simply cast to scalar, unless we run into problems where this won't
-        work.
-
-    Parameters
-    ----------
-    type_str : str
-        variable type stripped from original doc string
-
-    Returns
-    -------
-    output : str
-        corrected variable type for proper wrapping into vistrails
-
-    Notes
-    -----
-    Record of Alternate Output Types
-        'ndarray of bools' -- See: scipy.ndimage.morphology.binary_opening
-    """
-    if 'tuple' in type_str:
-        type_str = 'tuple'
-    elif 'sequence' in type_str:
-        type_str = 'list'
-    elif 'ndarray' in type_str:
-        type_str = 'ndarray'
-    elif 'scalar' in type_str:
-        type_str = 'scalar'
-    elif 'float' in type_str:
-        type_str = 'float'
-    elif 'int' in type_str or 'integer' in type_str:
-        type_str = 'int'
-    return type_str
 
 
 def _truncate_description(original_description, word_cnt_to_include):
@@ -432,6 +410,73 @@ def _guess_type(stringy_val):
     # give up and assume it is a string
     return 'str'
 
+_OR_REGEX = re.compile(r'\bor\b')
+_OF_REGEX = re.compile(r'\bof\b')
+
+
+def _normalize_type(the_type):
+    """
+    A single entry point for parsing the type.
+
+    This assumes that enums and optional properties have been
+    taken care of.
+
+    Parameters
+    ----------
+    the_type : str
+        The type string extracted from the docs
+
+    Returns
+    -------
+    norm_type : str
+        The normalized type
+    """
+    # get rid of all leading and trailing junk
+    the_type = the_type.strip(' .!?-_\t')
+    # if 'or'
+    if _OR_REGEX.search(the_type):
+        left, right = the_type.split('or', 1)
+        return _type_precedence(left, right)
+
+    if _OF_REGEX.search(the_type):
+        left, right = the_type.split('of', 1)
+        return _of_proc(left, right)
+
+    # Walk the precedence list to see what we get
+    for n_type in precedence_list:
+        if bool(_RE_DICT[n_type].search(the_type)):
+            return n_type
+
+    # of no patterns matched, return None to signal
+    # failure and let down-stream sort it out.
+    return None
+
+
+def _of_proc(left, right):
+    """
+
+    """
+    return _normalize_type(left)
+
+
+def _type_precedence(left, right):
+    """
+    Reduce a pair of types to a single type by picking
+    which one to return.
+
+
+    """
+    left = _normalize_type(left)
+    right = _normalize_type(right)
+    if left is None:
+        return right
+    elif right is None:
+        return left
+
+    left_i = precedence_list.index(left)
+    right_i = precedence_list.index(right)
+    return left if left_i < right_i else right
+
 
 def define_input_ports(docstring, func):
     """Turn the 'Parameters' fields into VisTrails input ports
@@ -463,14 +508,9 @@ def define_input_ports(docstring, func):
             continue
         the_type, is_optional = _type_optional(the_type)
         the_type, is_enum, enum_list = _enum_type(the_type)
-        the_type = _sized_array(the_type)
-
-        # Accounts for extraneous notes or lines in doc string that are not
-        # actually input or output parameters
-        if the_type == '':
-            continue
-        # Finish checking for alternate, complicated, or unique doc types
-        the_type = _check_alt_types(the_type)
+        the_type = _normalize_type(the_type)
+        if the_type is None:
+            raise ValueError("")
         # Trim parameter descriptions for incorporation into vistrails
         short_description = _truncate_description(the_description,
                                                   short_description_word_count)
@@ -548,65 +588,42 @@ def define_output_ports(docstring):
 
     output_ports = []
     # Check to make sure that there is a 'Returns' section in the docstring
-    if len(docstring['Returns']) == 0:
+    if 'Returns' not in docstring or len(docstring['Returns']) == 0:
         # If the 'Returns' section is included, but does not have any
         # parameters listed, then check the 'Parameters' section to see
         # whether the output is actually included as an optional input
         for (the_name, the_type, the_description) in docstring['Parameters']:
+            # Accounts for extraneous notes or lines in doc string that are not
+            # actually input or output parameters
+            if the_type == '':
+                continue
+
             if the_name.lower() == 'output':
-                the_type, is_optional = _type_optional(the_type)
-                the_type, is_enum, enum_list = _enum_type(the_type)
-                the_type = _sized_array(the_type)
-                # Accounts for extraneous notes or lines in doc string that are not
-                # actually input or output parameters
-                if the_type == '':
-                    continue
-                # Finish checking for alternate, complicated, or unique doc types
-                the_type = _check_alt_types(the_type)
+                the_type = _normalize_type(the_type)
+
                 output_ports.append(OPort(name=the_name,
                                           signature=pytype_to_vtsig(
                                               param_type=the_type,
                                               param_name=the_name)))
-    elif 'Returns' not in docstring:
-        # Verify that output was not included in the 'Parameters' section
-        for (the_name, the_type, the_description) in docstring['Parameters']:
-            if the_name.lower() == 'output':
-                the_type, is_optional = _type_optional(the_type)
-                the_type, is_enum, enum_list = _enum_type(the_type)
-                the_type = _sized_array(the_type)
-                if the_type == '':
-                    continue
-                the_type = _check_alt_types(the_type)
-                output_ports.append(OPort(name=str(the_name),
+    else:
+        for (the_name, the_type, the_description) in docstring['Returns']:
+            if the_type == '':
+                continue
+            the_type = _normalize_type(the_type)
+
+            logger.debug("the_name is {0}. \n\tthe_type is {1}. "
+                         "\n\tthe_description is {2}"
+                         "".format(the_name, the_type, the_description))
+            try:
+                output_ports.append(OPort(name=the_name,
                                           signature=pytype_to_vtsig(
                                               param_type=the_type,
                                               param_name=the_name)))
-        # Now, if output_ports remains empty, then KeyError gets raised.
-        if len(output_ports) == 0:
-            raise KeyError('Docstring is not formatted correctly. '
-                           'There is no "Returns" field. '
-                           'Your docstring: {0}'.format(docstring))
-    for (the_name, the_type, the_description) in docstring['Returns']:
-        the_type, is_optional = _type_optional(the_type)
-        the_type, is_enum, enum_list = _enum_type(the_type)
-        the_type = _sized_array(the_type)
-        if the_type == '':
-            continue
-        the_type = _check_alt_types(the_type)
-
-        logger.debug("the_name is {0}. \n\tthe_type is {1}. "
-                     "\n\tthe_description is {2}"
-                     "".format(the_name, the_type, the_description))
-        try:
-            output_ports.append(OPort(name=the_name,
-                                      signature=pytype_to_vtsig(
-                                          param_type=the_type,
-                                          param_name=the_name)))
-        except ValueError as ve:
-            logger.error('ValueError raised for Returns parameter with '
-                         'name: {0}\n\ttype: {1}\n\tdescription: {2}'
-                         ''.format(the_name, the_type, the_description))
-            six.reraise(ValueError, ve, sys.exc_info()[2])
+            except ValueError as ve:
+                logger.error('ValueError raised for Returns parameter with '
+                             'name: {0}\n\ttype: {1}\n\tdescription: {2}'
+                             ''.format(the_name, the_type, the_description))
+                six.reraise(ValueError, ve, sys.exc_info()[2])
     return output_ports
 
 
@@ -686,7 +703,8 @@ def gen_module(input_ports, output_ports, docstring,
     return new_class
 
 
-def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
+def wrap_function(func_name, module_path,
+                  add_input_dict=False, namespace=None):
     """Perform the wrapping of functions into VisTrails modules
 
     Parameters
@@ -703,7 +721,7 @@ def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
         solely a convenience function whose main purpose is to unpack the
         dictionary into the wrapped function
 
-    namespace : str
+    namespace : str, optional
         Path to the function in VisTrails.  This should be a string separated
         by vertical bars: |.  Example: 'vis|test' will put the new VisTrail
         module at the end of expandable lists vis -> test -> func_name
@@ -757,7 +775,7 @@ def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
     try:
         # create the VisTrails input ports
         input_ports = define_input_ports(doc._parsed_data, func)
-        pprint.pprint(input_ports)
+        # pprint.pprint(input_ports)
     except ValueError as ve:
         err = ("ValueError raised when attempting to format input_ports in "
                "function {0}\nOriginal error was: {1}").format(func, ve)

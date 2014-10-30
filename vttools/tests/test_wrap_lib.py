@@ -34,21 +34,15 @@
 ########################################################################
 
 from __future__ import (absolute_import, division, print_function,
-                        )
-
+                        unicode_literals)
+from itertools import product
 import six
 import logging
 logger = logging.getLogger(__name__)
 
-from nose.tools import assert_true
-from skxray.testing.decorators import known_fail_if
-from vttools.utils import make_symlink, query_yes_no
-import tempfile
-import os
-import shutil
-from subprocess import call
+from skxray.testing.decorators import skip_if
 from vttools import wrap_lib
-import numpy as np
+
 from numpy import interp
 from numpy.testing import assert_string_equal, assert_equal, assert_raises
 
@@ -77,18 +71,6 @@ def test_obj_src():
     initial_txt_should_be = str('def interp(x, xp, fp, left=None, right=None)')
     initial_txt_actual = string_result[0:44]
     assert_string_equal(initial_txt_actual, initial_txt_should_be)
-
-
-def test_pytype_to_vtsig():
-    docstring_type_list = ('ndarray', 'array', 'array_like', 'np.ndarray',
-                           'list', 'int', 'integer', 'scalar', 'float',
-                           'tuple', 'dict', 'bool', 'str', 'string',
-                           'numpy.dtype', 'np.dtype', 'dtype', 'sequence')
-    for _ in docstring_type_list:
-        param_type = _
-        param_name = 'test_' + _
-        assert_equal(wrap_lib.pytype_to_vtsig(param_type, param_name),
-                            wrap_lib.sig_map[param_type])
 
 
 def test_pytype_to_vtsig_error():
@@ -150,63 +132,114 @@ def test_enum_type():
     assert_equal(wrap_lib._enum_type(test_str6)[1], True)
 
 
-def test_sized_array():
-    """
-    Example function docstrings:
-    1)  numpy.outer()
-       Parameters :
-        a : (M,) array_like
-            First input vector. Input is flattened if not already
-            1-dimensional.
-        b : (N,) array_like
-            Second input vector. Input is flattened if not already
-            1-dimensional.
-        Returns :
-        out : (M, N) ndarray
-    2) numpy.linalg.svd()
-        Parameters :
-            a : (..., M, N) array_like
-                A real or complex matrix of shape (M, N) .
-            full_matrices : bool, optional
-                If True (default), u and v have the shapes (M, M) and (N, N),
-                respectively. Otherwise, the shapes are (M, K) and (K, N),
-                respectively, where K = min(M, N).
-            compute_uv : bool, optional
-                Whether or not to compute u and v in addition to s. True by
-                default.
-        Returns :
-            u : { (..., M, M), (..., M, K) } array
-                Unitary matrices. The actual shape depends on the value of
-                full_matrices. Only returned when compute_uv is True.
-            s : (..., K) array
-                The singular values for every matrix, sorted in descending
-                order.
-            v : { (..., N, N), (..., K, N) } array
-                Unitary matrices. The actual shape depends on the value of
-                full_matrices. Only returned when compute_uv is True.
-    """
-    #This string should be stripped and assigned as a basic array
-    test_str1 = '(N, M, P) array' #PASS
-    test_str2 = '(..., K) array' #PASS
-    test_str3 = '(..., M, N) array_like' #PASS
-    test_str4 = '(N, M, P) ndarray' #PASS
-    #This string should pass through this function without processing
-    # or modification (should pass through unscathed)
-    test_str5 = '(N M, P) ndarray' #FAIL
-    test_str6 = 'ndarray' #FAIL
-    test_str7 = '(M,) array_like' #PASS
-    test_str8 = '(M) array_like' #PASS
+object_type_strings = ('any', 'object')
 
-    assert_equal(wrap_lib._sized_array(test_str1), 'array')
-    assert_equal(wrap_lib._sized_array(test_str2), 'array')
-    assert_equal(wrap_lib._sized_array(test_str3), 'array')
-    assert_equal(wrap_lib._sized_array(test_str4), 'array')
-    assert_equal(wrap_lib._sized_array(test_str5), '(N M, P) ndarray')
-    assert_equal(wrap_lib._sized_array(test_str6), 'ndarray')
-    assert_equal(wrap_lib._sized_array(test_str7), 'array')
-    assert_equal(wrap_lib._sized_array(test_str8), 'array')
+array_type_strings = ('array', 'array-like', 'array_like', 'array like',
+                      'Array', 'ndarray', 'ndarray-like', '(N, ) array',
+                      '(N, Maoeu, 8) array', '(,) array', '(, ) array',
+                      'np.array', 'np.ndarray', '(N, M, P) array',
+                      '(..., K) array',
+                      '(..., M, N) array_like', '(N, M, P) ndarray',
+                      '(M,) array_like', '(M) array_like')
+matrix_type_strings = (tuple('{}matrix'.format(p)
+                             for p in ('np.', 'numpy.', '')) +
+                       ('(N, M) matrix', ))
+list_type_strings = ('list', 'List', 'list-like', 'list_like',
+                     'list like', 'listlike')
 
 
+tuple_type_strings = ('tuple'),
+seq_type_strings = ('sequence',)
+dtype_type_strings = ('dtype', 'dtype like', 'np.dtype', 'numpy.dtype')
+bool_type_strings = ('bool', 'boolean')
+file_type_strings = ('file',)
+scalar_type_strings = ('scalar', )
+
+float_type_strings = (tuple('{}float{}'.format(prefix, n)
+                            for prefix, n in product(('np.', 'numpy.', ''),
+                                                     (16, 32, 64, 128)))
+                            + ('double', 'single', 'float'))
+
+int_type_strings = (('integer', 'InTeGeR', ) +
+                            tuple('{}{}int{}'.format(prefix, u, n)
+                                  for prefix, u, n
+                                  in product(('np.', 'numpy.', ''),
+                                             ('u', ''),
+                                             (8, 16, 32, 64))))
+
+complex_type_strings = ('complex', )
+dict_type_strings = ('dict', 'dictionary')
+str_type_strings = ('str', 'string')
+callable_type_strings = ('function', 'func', 'callable')
+
+
+def test_normalize_simple():
+
+    # Example function docstrings:
+    # 1)  numpy.outer()
+    #    Parameters :
+    #     a : (M,) array_like
+    #         First input vector. Input is flattened if not already
+    #         1-dimensional.
+    #     b : (N,) array_like
+    #         Second input vector. Input is flattened if not already
+    #         1-dimensional.
+    #     Returns :
+    #     out : (M, N) ndarray
+    # 2) numpy.linalg.svd()
+    #     Parameters :
+    #         a : (..., M, N) array_like
+    #             A real or complex matrix of shape (M, N) .
+    #         full_matrices : bool, optional
+    #             If True (default), u and v have the shapes (M, M) and (N, N),
+    #             respectively. Otherwise, the shapes are (M, K) and (K, N),
+    #             respectively, where K = min(M, N).
+    #         compute_uv : bool, optional
+    #             Whether or not to compute u and v in addition to s. True by
+    #             default.
+    #     Returns :
+    #         u : { (..., M, M), (..., M, K) } array
+    #             Unitary matrices. The actual shape depends on the value of
+    #             full_matrices. Only returned when compute_uv is True.
+    #         s : (..., K) array
+    #             The singular values for every matrix, sorted in descending
+    #             order.
+    #         v : { (..., N, N), (..., K, N) } array
+    #             Unitary matrices. The actual shape depends on the value of
+    #             full_matrices. Only returned when compute_uv is True.
+    test_dict = {
+                 'object': object_type_strings,
+                 'array': array_type_strings,
+                 'matrix': matrix_type_strings,
+                 'list': list_type_strings,
+                 'tuple': tuple_type_strings,
+                 'seq': seq_type_strings,
+                 'dtype': dtype_type_strings,
+                 'bool': bool_type_strings,
+                 'file': file_type_strings,
+                 'scalar': scalar_type_strings,
+                 'float': float_type_strings,
+                 'int': int_type_strings,
+                 'complex': complex_type_strings,
+                 'dict': dict_type_strings,
+                 'str': str_type_strings,
+                 'callable': callable_type_strings,
+                 }
+
+    # make sure we test everything!
+    test_keys = set(six.iterkeys(test_dict))
+    sig_keys = set(six.iterkeys(wrap_lib.sig_map))
+    assert_equal(test_keys, sig_keys)
+    for k, v in six.iteritems(test_dict):
+        for ts in v:
+            yield _normalize_test_helper, ts, k
+
+
+def _normalize_test_helper(tst, targ):
+    assert_equal(wrap_lib._normalize_type(tst), targ)
+
+
+@skip_if(True)
 def test_check_alt_types():
     test_str1 = 'float or int'
     test_str2 = 'scalar or tuple of scalars'
@@ -265,3 +298,13 @@ def test_guess_type():
 
     for tst, tar in zip(test_strting, target_strings):
         yield _func_helper, wrap_lib._guess_type, tst, tar
+
+
+def test_dicts_match():
+    RE_keys = set(six.iterkeys(wrap_lib._RE_DICT))
+    sig_keys = set(six.iterkeys(wrap_lib.sig_map))
+
+    p_keys = set(wrap_lib.precedence_list)
+
+    assert_equal(RE_keys, sig_keys)
+    assert_equal(RE_keys, p_keys)
