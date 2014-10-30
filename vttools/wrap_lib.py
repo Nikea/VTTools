@@ -173,45 +173,6 @@ def docstring_func(pyobj):
                          "type(pyobj)".format(type(pyobj)))
 
 
-def pytype_to_vtsig(param_type, param_name):
-    """Transform 'arg_type' into a vistrails port signature
-
-    Parameters
-    ----------
-    param_type : str
-        The type of the parameter from the library function to be wrapped
-
-    param_name : str
-        The name of the parameter from the library function to be wrapped
-
-    Returns
-    -------
-    port_sig : str
-        The VisTrails port signature
-    """
-    port_sig = None
-    # bash to lower case
-    param_name = param_name.lower()
-    param_type = param_type.lower()
-    # see if special handling needs to occur because of the parameter name
-    if param_name in sig_map:
-        port_sig = sig_map[param_name]
-    # if no special handling is required then create a port based on the
-    # parameter type
-    elif param_type in sig_map:
-        port_sig = sig_map[param_type]
-    if port_sig is None:
-        # if no arg_type matches the pytypes that relate to VisTrails port sigs
-        # raise a value error
-        raise ValueError("The arg_type doesn't match any of the options.  "
-                         "Your "
-                         "arg_type is: \n\n\t{0}\n\nSee the sig_type "
-                         "dictionary in "
-                         "VTTools/vttools/wrap_lib.py".format(param_type))
-
-    return port_sig
-
-
 def _default_vals(pyobj):
     """
     This is a helper function that scrapes default parameter values for
@@ -271,7 +232,7 @@ def _type_optional(type_str):
 _ENUM_RE = re.compile('\{(.*)\}')
 _RE_DICT = {
     "object": re.compile('^(?i)(any|object)$'),
-    "array": re.compile('^(?i)(\(((([A-Z0-9.]+,? *)+)|, ?)\))? *(((np|numpy)\.)?(nd)?array(_|-| )?(like)?)$'),  # noqa,
+    "array": re.compile('^(?i)(\(?((([A-Z0-9.]+(,|x)? *)+)|, ?)\)?)? *(((np|numpy)\.)?(nd)?array(_|-| )?(like)?)$'),  # noqa,
     "matrix": re.compile('^(?i)(\((([A-Z0-9.]+,? *){2} ?)\))? *(((np|numpy)\.)?matrix(_|-| )?(like)?)$'),  # noqa,
     # note these three do not match end so 'list of ... ' matches
     "list": re.compile('^(?i)list(-|_| )?(like)?'),
@@ -282,7 +243,7 @@ _RE_DICT = {
     "file": re.compile('^(?i)file?$'),
     "scalar": re.compile('^(?i)scalar?$'),
     "float": re.compile('^(?i)(((np|numpy)\.)?float(16|32|64|128)?|double|single)$'),  # noqa,
-    "int": re.compile('^(?i)((np|numpy)\.)?u?int(eger)?(8|16|32|64)?$'),
+    "int": re.compile('^(?i)((np|numpy)\.)?u?int(eger)?(8|16|32|64)?( value|s)?$'),      # noqa
     "complex": re.compile('^(?i)complex$'),
     "dict": re.compile('^(?i)dict(ionary)?$'),
     "str": re.compile('^(?i)str(ing)?$'),
@@ -481,9 +442,15 @@ def _normalize_type(the_type):
 
 def _of_proc(left, right):
     """
+    Processes a type which includes the word 'of'.
 
+    Right now this is very simple and just returns
+    the left side.
     """
-    return _normalize_type(left)
+    left = _normalize_type(left)
+    if left in ('list', 'tuple', 'array', 'matrix', 'seq'):
+        return left
+    return None
 
 
 def _type_precedence(left, right):
@@ -559,33 +526,18 @@ def define_input_ports(docstring, func):
             pdict = {'name': str(port_name),
                      'label': str(short_description),
                      'optional': is_optional,
-                     'signature': pytype_to_vtsig(param_type=port_type,
-                                                  param_name=port_name)}
-            if port_name in default_dict:
-                port_default = default_dict[port_name]
-                pdict['default'] = port_default
+                     'signature': sig_map[port_type]}
             # deal with if the function as an enum attribute
             if hasattr(func, port_name):
                 f_enums = getattr(func, port_name)
                 if port_is_enum:
                     # if we already think this is an enum, make sure they
                     # match
-                    if len(f_enums) != len(enum_list):
-                        raise ValueError('Attempting to automatically create '
-                                         'an enum port for the function named'
-                                         ' {0}. The values for the enum port '
-                                         'defined in the doc string are {1} '
-                                         'with length {2} and there is a '
-                                         'function attribute with values {3} '
-                                         'and length {4}.  Please make sure '
-                                         'the values in the docstring agree '
-                                         'with the values in the function '
-                                         'attribute, as I\'m not sure which '
-                                         'to use.'.format(the_name,
-                                                          enum_list,
-                                                          len(enum_list),
-                                                          f_enums,
-                                                          len(f_enums)))
+                    if not _enum_type(enum_list, f_enums):
+                        format_args = (the_name, enum_list, len(enum_list),
+                                       f_enums, len(f_enums))
+                        raise ValueError(_enum_error.format(*format_args))
+
                 port_enum_list = f_enums
                 port_is_enum = True
             if port_is_enum:
@@ -598,6 +550,33 @@ def define_input_ports(docstring, func):
     if len(input_ports) == 0:
         logger.debug('dir of input_ports[0]: {0}'.format(dir(input_ports[0])))
     return input_ports
+
+
+def _generate_port_dicts(doc_struct, func):
+    """
+    Process the docstring structure to format the
+    dictionaries need to
+    """
+    pass
+
+
+def _enums_equal(left, right):
+    """
+    Compare two lists of enumn and determine if they are equivalent.
+    """
+    return set(str(_) for _ in left) == set(str(_) for _ in right)
+
+_enum_error = ('Attempting to automatically create '
+              'an enum port for the function named'
+              ' {0}. The values for the enum port '
+                'defined in the doc string are {1} '
+                'with length {2} and there is a '
+                'function attribute with values {3} '
+                'and length {4}.  Please make sure '
+                'the values in the docstring agree '
+                'with the values in the function '
+                'attribute, as I\'m not sure which '
+                'to use.')
 
 
 def define_output_ports(docstring):
@@ -626,18 +605,18 @@ def define_output_ports(docstring):
             # Accounts for extraneous notes or lines in doc string that are not
             # actually input or output parameters
             if the_type == '':
+                print("malformed docstirng on {}".format(the_name))
                 continue
 
             if the_name.lower() == 'output':
                 the_type = _normalize_type(the_type)
 
                 output_ports.append(OPort(name=the_name,
-                                          signature=pytype_to_vtsig(
-                                              param_type=the_type,
-                                              param_name=the_name)))
+                                          signature=sig_map[the_type]))
     else:
         for (the_name, the_type, the_description) in docstring['Returns']:
             if the_type == '':
+                print("malformed docstirng on {}".format(the_name))
                 continue
             the_type = _normalize_type(the_type)
 
@@ -646,9 +625,7 @@ def define_output_ports(docstring):
                          "".format(the_name, the_type, the_description))
             try:
                 output_ports.append(OPort(name=the_name,
-                                          signature=pytype_to_vtsig(
-                                              param_type=the_type,
-                                              param_name=the_name)))
+                                          signature=sig_map[the_type]))
             except ValueError as ve:
                 logger.error('ValueError raised for Returns parameter with '
                              'name: {0}\n\ttype: {1}\n\tdescription: {2}'
@@ -786,39 +763,22 @@ def wrap_function(func_name, module_path,
     mod = importlib.import_module(module_path)
     func = getattr(mod, func_name)
 
+    # get the docstring of the function
+    doc = docstring_func(func)
+
+    # get the source of the function
     try:
-        # get the source of the function
-        src = obj_src(func)
-    except IOError as ioe:
-        # raised if the source cannot be found
-        logger.debug("IOError raised when attempting to get the source"
-                     "for function {0}".format(func))
-        raise IOError(ioe)
-    try:
-        # get the docstring of the function
-        doc = docstring_func(func)
-    except ValueError as ve:
-        err = ("ValueError raised when attempting to get docstring for "
-               "function {0}\nOriginal error was: {1}").format(func, ve)
-        logger.error(err)
-        six.reraise(AutowrapError, err, sys.exc_info()[2])
-    try:
-        # create the VisTrails input ports
-        input_ports = define_input_ports(doc._parsed_data, func)
-        # pprint.pprint(input_ports)
-    except ValueError as ve:
-        err = ("ValueError raised when attempting to format input_ports in "
-               "function {0}\nOriginal error was: {1}").format(func, ve)
-        logger.error(err)
-        six.reraise(AutowrapError, err, sys.exc_info()[2])
-    try:
-        # create the VisTrails output ports
-        output_ports = define_output_ports(doc._parsed_data)
-    except ValueError as ve:
-        err = ("ValueError raised when attempting to format output_ports in "
-               "function {0}\nOriginal error was: {1}").format(func, ve)
-        logger.error(err)
-        six.reraise(AutowrapError, err, sys.exc_info()[2])
+        # if we can get the source, use the whole thing as the
+        # docstring in vistrails
+        doc_string = obj_src(func)
+    except IOError:
+        # if we can't, just use the docstring
+        doc_string = func.__doc__
+    # create the VisTrails input ports
+    input_ports = define_input_ports(doc._parsed_data, func)
+    # pprint.pprint(input_ports)
+    # create the VisTrails output ports
+    output_ports = define_output_ports(doc._parsed_data)
     if add_input_dict:
         # define a dictionary input port if necessary
         dict_port = IPort(name='input_dict', signature=('basic:Dictionary'),
@@ -831,7 +791,7 @@ def wrap_function(func_name, module_path,
     # actually create the VisTrail module
     generated_module = gen_module(input_ports=input_ports,
                                   output_ports=output_ports,
-                                  docstring=src, module_name=func_name,
+                                  docstring=doc_string, module_name=func_name,
                                   module_namespace=namespace,
                                   library_func=func,
                                   dict_port=dict_port)

@@ -92,12 +92,6 @@ def test_obj_src():
     assert_string_equal(initial_txt_actual, initial_txt_should_be)
 
 
-def test_pytype_to_vtsig_error():
-    param_name = 'FSM'
-    param_type = 'outer_space'
-    assert_raises(ValueError, wrap_lib.pytype_to_vtsig, param_type, param_name)
-
-
 def _optional_test_helper(tst, tar):
     assert_equal(wrap_lib._type_optional(tst)[1], tar)
 
@@ -159,7 +153,7 @@ array_type_strings = ('array', 'array-like', 'array_like', 'array like',
                       'np.array', 'np.ndarray', '(N, M, P) array',
                       '(..., K) array',
                       '(..., M, N) array_like', '(N, M, P) ndarray',
-                      '(M,) array_like', '(M) array_like')
+                      '(M,) array_like', '(M) array_like', 'MxN array')
 matrix_type_strings = (tuple('{}matrix'.format(p)
                              for p in ('np.', 'numpy.', '')) +
                        ('(N, M) matrix', ))
@@ -258,21 +252,23 @@ def _normalize_test_helper(tst, targ):
     assert_equal(wrap_lib._normalize_type(tst), targ)
 
 
-@skip_if(True)
 def test_check_alt_types():
-    test_str1 = 'float or int'
-    test_str2 = 'scalar or tuple of scalars'
-    test_str3 = 'int or scalar'
-    test_str4 = 'scalar or sequence of scalars'
-    test_str5 = 'MxN ndarray'
-    test_str6 = 'integer value'
+    test_strings = ('float or int',
+                    'scalar or tuple of scalars',
+                    'int or scalar',
+                    'scalar or sequence of scalars',
+                    'MxN ndarray',
+                    'integer value')
 
-    assert_equal(wrap_lib._check_alt_types(test_str1), 'float')
-    assert_equal(wrap_lib._check_alt_types(test_str2), 'tuple')
-    assert_equal(wrap_lib._check_alt_types(test_str3), 'scalar')
-    assert_equal(wrap_lib._check_alt_types(test_str4), 'list')
-    assert_equal(wrap_lib._check_alt_types(test_str5), 'ndarray')
-    assert_equal(wrap_lib._check_alt_types(test_str6), 'int')
+    targets = ('float',
+    'tuple',
+    'scalar',
+    'seq',
+    'array',
+    'int',)
+
+    for ts, tar in zip(test_strings, targets):
+        yield _normalize_test_helper, ts, tar,
 
 
 def test_truncate_description():
