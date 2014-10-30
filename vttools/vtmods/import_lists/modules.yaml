@@ -36,12 +36,8 @@ autowrap_func:
 - func_name: bin_1D
   module_path: nsls2.core
   namespace: core
-- func_name: bin_image_to_1D
-  module_path: nsls2.core
-  namespace: core
-- func_name : bin_edges_to_centers
-  module_path: nsls2.core
-  namespace: core
+#- func_name: bin_image_to_1D, module_path: nsls2.core, namespace: core
+#- func_name : bin_edges_to_centers, module_path: nsls2.core, namespace: core
 - func_name : pixel_to_radius
   module_path: nsls2.core
   namespace: core
@@ -54,7 +50,7 @@ autowrap_func:
 - func_name: convolve
   module_path: numpy
   namespace: numpy
-- func_name: gauss_fit
+- func_name: gaussian_fit
   module_path: nsls2.fitting.model.physics_model
   namespace: fitting
 - func_name: lorentzian_fit
@@ -69,9 +65,7 @@ autowrap_func:
 - func_name: estimate_d_blind
   module_path: nsls2.calibration
   namespace: calibration
-- func_name: find_ring_center_acorr_iD
-  module_path: nsls2.image
-  namespace: image
+#- func_name: find_ring_center_acorr_iD, module_path: nsls2.image, namespace: image
 
 
 #- {func_name: emission_line_search, module_path: nsls2.constants,  namespace: core, add_input_dict: true}
