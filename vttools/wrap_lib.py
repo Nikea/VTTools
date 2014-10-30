@@ -367,8 +367,6 @@ def _truncate_description(original_description, word_cnt_to_include):
     short_description : string
         truncated description that will be passed into vistrails
     """
-    if len(original_description) == 0:
-        return ''
     short_description = original_description[0]
     # need this twice, might as well stash it
     sd_words = short_description.split(' ')
