@@ -14,6 +14,7 @@ import_modules:
         - .vis
         - .utils
         - .broker
+        - .fit
 
 # list of functions to autowrap
 autowrap_func:
@@ -54,16 +55,22 @@ autowrap_func:
 - func_name: convolve
   module_path: numpy
   namespace: numpy
-- func_name: gaussian_fit
+- func_name: gaussian_model
   module_path: nsls2.fitting.model.physics_model
   namespace: fitting
-- func_name: lorentzian_fit
+- func_name: lorentzian_model
   module_path: nsls2.fitting.model.physics_model
   namespace: fitting
-- func_name: lorentzian2_fit
+- func_name: lorentzian2_model
+  module_path: nsls2.fitting.model.physics_model
+  namespace: fitting
+- func_name: quadratic_model
   module_path: nsls2.fitting.model.physics_model
   namespace: fitting
 - func_name: fit_engine
+  module_path: nsls2.fitting.model.physics_model
+  namespace: fitting
+- func_name: fit_engine_list
   module_path: nsls2.fitting.model.physics_model
   namespace: fitting
 - func_name: refine_center
