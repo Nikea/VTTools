@@ -74,9 +74,6 @@ autowrap_func:
 - func_name: estimate_d_blind
   module_path: skxray.calibration
   namespace: calibration
-#- func_name: find_ring_center_acorr_iD
-#  module_path: skxray.image
-#  namespace: image
 
 
 #- {func_name: emission_line_search, module_path: skxray.constants,  namespace: core, add_input_dict: true}
