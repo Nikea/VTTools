@@ -63,7 +63,7 @@ def obj_src(py_obj, escape_docstring=True):
 
     Parameters
     ----------
-    py_obj : obj
+    py_obj : callable
         Any python object
 
     escape_doc_string : bool
@@ -210,6 +210,35 @@ def pytype_to_vtsig(param_type, param_name):
                          "VTTools/vttools/wrap_lib.py".format(param_type))
 
     return port_sig
+
+
+def _default_vals(pyobj):
+    """
+    This is a helper function that scrapes default parameter values for
+    incorporation into the automatic function wrapper for incorporating
+    functions into VisTrails.
+
+    Parameters
+    ----------
+    pyobj : callable
+        Valid python function from which any specified default values will
+        be scraped and incorporated into the associated VisTrails object.
+
+    Returns
+    -------
+    default_dict : dict
+        Dictionary containing PARAMETER : DEFAULT_VALUE pairs.
+    """
+    default_dict = {}
+    func_args = inspect.getargspec(pyobj)
+    if bool(func_args[3]):
+        arg_count = len(func_args[0])
+        default_count = len(func_args[3])
+
+        for val in range(len(func_args[3])):
+            default_dict[func_args[0][(arg_count-default_count+val)]] = \
+                func_args[3][val]
+    return default_dict
 
 
 def _type_optional(type_str):
