@@ -50,15 +50,26 @@ autowrap_func:
 - func_name: convolve
   module_path: numpy
   namespace: numpy
-- func_name: gaussian_fit
-  module_path: nsls2.fitting.model.physics_model
+# FITTING
+- func_name: gaussian_model
+  module_path: vttools.vt_autowrap.fitting
   namespace: fitting
-- func_name: lorentzian_fit
-  module_path: nsls2.fitting.model.physics_model
+- func_name: lorentzian_model
+  module_path: vttools.vt_autowrap.fitting
   namespace: fitting
-- func_name: lorentzian2_fit
-  module_path: nsls2.fitting.model.physics_model
+- func_name: lorentzian2_model
+  module_path: vttools.vt_autowrap.fitting
   namespace: fitting
+- func_name: quadratic_model
+  module_path: vttools.vt_autowrap.fitting
+  namespace: fitting
+- func_name: fit_engine
+  module_path: vttools.vt_autowrap.fitting
+  namespace: fitting
+- func_name: fit_engine_list
+  module_path: vttools.vt_autowrap.fitting
+  namespace: fitting
+# CALIBRATION
 - func_name: refine_center
   module_path: nsls2.calibration
   namespace: calibration
