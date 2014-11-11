@@ -14,7 +14,7 @@ import_modules:
         - .vis
         - .utils
         - .broker
-        - .fit
+        - .fitting
 
 # list of functions to autowrap
 autowrap_func:

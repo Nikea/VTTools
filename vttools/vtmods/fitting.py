@@ -38,35 +38,32 @@ from __future__ import (absolute_import, division, print_function,
 import six
 from vistrails.core.modules.vistrails_module import Module, ModuleSettings
 from vistrails.core.modules.config import IPort, OPort
-
 import logging
 logger = logging.getLogger(__name__)
 
-
 class ModelAggregator(Module):
-    _settings = ModuleSettings(namespace="fitting")
-
+    """Combine 1+ models into an aggregate model
+    """
+    _settings = ModuleSettings(namespace='fitting')
     _input_ports = [
-        IPort(name='some_models',
-              label='The models',
+        IPort(name='models', label='models to aggregate',
               signature='basic:Variant')
     ]
-
     _output_ports = [
-        OPort(name='single_model',
-              signature='basic:Variant'),
+        OPort(name='aggregated_models', signature='basic:Variant')
     ]
-
     def compute(self):
-        some_models = self.get_input_list('some_models')
-        summed_models = some_models[0]
-        if len(some_models) > 1:
-            for a_model in some_models[1:]:
-                summed_models = summed_models + a_model
+        """Mandatory override of parent `Module` class.
 
-        self.outputPorts['single_model'] = summed_models
-        #self.set_ouput('single_model', summed_models)
-
+        Loop over however many models are connected to the 'models' input port
+        and combine them into a single aggregate model
+        """
+        models = self.get_input_list('models')
+        aggregated = models[0]
+        if len(models) > 2:
+            for model in models[1:]:
+                aggregated += model
+        self.set_output('aggregated_models', aggregated)
 
 def vistrails_modules():
     return [ModelAggregator,]
