@@ -14,8 +14,10 @@ before_install:
 install:
   - export GIT_FULL_HASH=`git rev-parse HEAD`
   - conda update conda --yes
-  - conda create -n testenv --yes pip nose python=$TRAVIS_PYTHON_VERSION lmfit numpy scipy six numpydoc vistrails
+  - conda create -n testenv --yes pip nose python=$TRAVIS_PYTHON_VERSION lmfit numpy scipy six
   - source activate testenv
+  - conda install numpydoc
+  - conda install vistrails
   - cd ../
   - git clone https://github.com/Nikea/NSLS2.git
   - cd NSLS2
