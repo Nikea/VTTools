@@ -46,6 +46,8 @@ def quadratic_model(prefix,
     """
     Quadratic Model for fitting.
 
+    f(x) = a * x**2 + b * x + c
+
     Parameters
     ----------
     prefix : str
