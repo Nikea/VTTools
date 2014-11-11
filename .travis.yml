@@ -22,6 +22,10 @@ install:
   - git clone https://github.com/Nikea/NSLS2.git
   - cd NSLS2
   - python setup.py install
+  - cd ../
+  - git clone https://github.com/vistrails/vistrails.git
+  - cd vistrails
+  - python setup.py install
   - cd ../VTTools
   - python setup.py install
   - pip install coveralls
