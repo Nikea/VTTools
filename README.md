@@ -1,0 +1,2 @@
+[![Build Status](https://travis-ci.org/Nikea/VTTools.svg)](https://travis-ci.org/Nikea/VTTools)
+[![Coverage Status](https://img.shields.io/coveralls/Nikea/VTTools.svg)](https://coveralls.io/r/Nikea/VTTools)
