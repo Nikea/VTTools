@@ -524,6 +524,7 @@ def define_input_ports(docstring, func):
     """
     input_ports = []
     short_description_word_count = 4
+    default_dict = _default_vals(func)
     if 'Parameters' not in docstring:
         # raised if 'Parameters' is not in the docstring
         raise KeyError('Docstring is not formatted correctly. There is no '
@@ -558,9 +559,11 @@ def define_input_ports(docstring, func):
             pdict = {'name': str(port_name),
                      'label': str(short_description),
                      'optional': is_optional,
-                     'signature': str(pytype_to_vtsig(param_type=port_type,
-                                                  param_name=port_name))}
-
+                     'signature': pytype_to_vtsig(param_type=port_type,
+                                                  param_name=port_name)}
+            if port_name in default_dict:
+                port_default = default_dict[port_name]
+                pdict['default'] = port_default
             # deal with if the function as an enum attribute
             if hasattr(func, port_name):
                 f_enums = getattr(func, port_name)
