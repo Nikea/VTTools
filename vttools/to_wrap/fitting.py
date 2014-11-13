@@ -33,8 +33,8 @@
 # POSSIBILITY OF SUCH DAMAGE.                                          #
 ########################################################################
 import sys
-from nsls2.fitting.model.physics_model import (
-    QuadraticModel, GaussianModel, LorentzianModel, Lorentzian2Model)
+from skxray.fitting.api import (QuadraticModel, GaussianModel,
+                                 LorentzianModel, Lorentzian2Model)
 
 import logging
 logger = logging.getLogger(__name__)

@@ -12,7 +12,7 @@
 
 
 import nose
-from nsls2.testing.noseclasses import KnownFailure
+from skxray.testing.noseclasses import KnownFailure
 
 plugins = [KnownFailure]
 env = {"NOSE_WITH_COVERAGE": 1,

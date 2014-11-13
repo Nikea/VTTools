@@ -40,7 +40,7 @@ import six
 from numpy.testing import (assert_array_equal, assert_array_almost_equal,
                            assert_almost_equal)
 
-from nsls2.testing.decorators import known_fail_if
+from skxray.testing.decorators import known_fail_if
 from vttools.to_wrap.fitting import (gaussian_model, lorentzian_model,
                                      lorentzian2_model, quadratic_model,
                                      fit_engine)

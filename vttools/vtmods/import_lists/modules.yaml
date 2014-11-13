@@ -19,82 +19,82 @@ import_modules:
 # list of functions to autowrap
 autowrap_func:
 - func_name: grid3d
-  module_path: nsls2.core
+  module_path: skxray.core
   namespace: core
 - func_name: process_to_q
-  module_path: nsls2.recip
+  module_path: skxray.recip
   namespace: recip
   add_input_dict: true
 - func_name: hkl_to_q
-  module_path: nsls2.recip
+  module_path: skxray.recip
   namespace: recip
 - func_name: twotheta_to_q
-  module_path: nsls2.core
+  module_path: skxray.core
   namespace: recip
 - func_name: q_to_twotheta
-  module_path: nsls2.core
+  module_path: skxray.core
   namespace: recip
 - func_name: bin_1D
-  module_path: nsls2.core
+  module_path: skxray.core
   namespace: core
 #- func_name: bin_image_to_1D
-#  module_path: nsls2.core
+#  module_path: skxray.core
 #  namespace: core
 #- func_name : bin_edges_to_centers
-#  module_path: nsls2.core
+#  module_path: skxray.core
 #  namespace: core
 - func_name : pixel_to_radius
-  module_path: nsls2.core
+  module_path: skxray.core
   namespace: core
 - func_name : pixel_to_phi
-  module_path: nsls2.core
+  module_path: skxray.core
   namespace: core
 - func_name: read_binary
-  module_path: nsls2.io.binary
+  module_path: skxray.io.binary
   namespace: io
 - func_name: convolve
   module_path: numpy
   namespace: numpy
 # FITTING
 - func_name: gaussian_model
-  module_path: vttools.vt_autowrap.fitting
+  module_path: vttools.to_wrap.fitting
   namespace: fitting
 - func_name: lorentzian_model
-  module_path: vttools.vt_autowrap.fitting
+  module_path: vttools.to_wrap.fitting
   namespace: fitting
 - func_name: lorentzian2_model
-  module_path: vttools.vt_autowrap.fitting
+  module_path: vttools.to_wrap.fitting
   namespace: fitting
 - func_name: quadratic_model
-  module_path: vttools.vt_autowrap.fitting
+  module_path: vttools.to_wrap.fitting
   namespace: fitting
 - func_name: fit_engine
-  module_path: vttools.vt_autowrap.fitting
+  module_path: vttools.to_wrap.fitting
   namespace: fitting
 - func_name: fit_engine_list
-  module_path: vttools.vt_autowrap.fitting
+  module_path: vttools.to_wrap.fitting
   namespace: fitting
 # CALIBRATION
 - func_name: refine_center
-  module_path: nsls2.calibration
+  module_path: skxray.calibration
   namespace: calibration
 - func_name: estimate_d_blind
-  module_path: nsls2.calibration
+  module_path: skxray.calibration
   namespace: calibration
 #- func_name: find_ring_center_acorr_iD
-#  module_path: nsls2.image
+#  module_path: skxray.image
 #  namespace: image
 
 
-#- {func_name: emission_line_search, module_path: nsls2.constants,  namespace: core, add_input_dict: true}
-#- {func_name: snip_method, module_path: nsls2.fitting.model.background,namespace: core, add_input_dict: true}
-#- {func_name: gauss_peak, module_path: nsls2.fitting.model.physics_peak, namespace:core, add_input_dict: true}
-#- {func_name: gauss_step, module_path: nsls2.fitting.model.physics_peak}
-#- {func_name: gauss_tail, module_path: nsls2.fitting.model.physics_peak}
-#- {func_name: elastic_peak, module_path: nsls2.fitting.model.physics_peak}
-#- {func_name: compton_peak, module_path: nsls2.fitting.model.physics_peak}
-#- {func_name: fit_quad_to_peak, module_path: nsls2.spectroscopy}
-#- {func_name: align_and_scale, module_path: nsls2.spectroscopy}
-#- {func_name: find_largest_peak, module_path: nsls2.spectroscopy}
-#- {func_name: integrate_ROI_spectrum, module_path: nsls2.spectroscopy}
-#- {func_name: integrate_ROI, module_path: nsls2.spectroscopy}
+#- {func_name: emission_line_search, module_path: skxray.constants,  namespace: core, add_input_dict: true}
+#- {func_name: snip_method, module_path: skxray.fitting.api, namespace: core, add_input_dict: true}
+#- {func_name: gauss_peak, module_path: skxray.fitting.api, namespace:core, add_input_dict: true}
+#- {func_name: gauss_step, module_path: skxray.fitting.api}
+#- {func_name: gauss_tail, module_path: skxray.fitting.api}
+#- {func_name: elastic_peak, module_path: skxray.fitting.api}
+#- {func_name: compton_peak, module_path: skxray.fitting.api}
+#- {func_name: fit_quad_to_peak, module_path: skxray.spectroscopy}
+#- {func_name: align_and_scale, module_path: skxray.spectroscopy}
+#- {func_name: find_largest_peak, module_path: skxray.spectroscopy}
+#- {func_name: integrate_ROI_spectrum, module_path: skxray.spectroscopy}
+#- {func_name: integrate_ROI, module_path: skxray.spectroscopy}
