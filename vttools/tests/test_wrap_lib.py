@@ -266,13 +266,19 @@ def test_wrap_function():
 def test_wrap_class():
     pass
 
-
-test_obj_src()
-test_pytype_to_vtsig()
-test_pytype_to_vtsig_error()
-test_type_optional()
-test_enum_type()
-test_sized_array()
-test_check_alt_types()
-test_truncate_description()
-test_guess_type()
+if __name__ == '__main__':
+    test_obj_src()
+    test_pytype_to_vtsig()
+    test_pytype_to_vtsig_error()
+    test_type_optional()
+    test_enum_type()
+    test_sized_array()
+    test_check_alt_types()
+    test_truncate_description()
+    test_guess_type()
+    # no-op, for now
+    test_define_input_ports()
+    test_define_output_ports()
+    test_gen_module()
+    test_wrap_function()
+    test_wrap_class()
