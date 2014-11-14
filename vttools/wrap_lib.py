@@ -694,7 +694,7 @@ def wrap_function(func_name, module_path, add_input_dict=False, namespace=None):
         Name of the function to wrap into VisTrails. Example 'grid3d'
 
     module_path : str
-        Name of the module which contains the function. Example: 'nsls2.core'
+        Name of the module which contains the function. Example: 'skxray.core'
 
     add_input_dict : bool, optional
         Flag that instructs the wrapping machinery to add a dictionary input

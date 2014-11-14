@@ -32,56 +32,5 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   #
 # POSSIBILITY OF SUCH DAMAGE.                                          #
 ########################################################################
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-import six
 import logging
 logger = logging.getLogger(__name__)
-
-from nose.tools import assert_true
-from nsls2.testing.decorators import known_fail_if
-from vttools.utils import make_symlink, query_yes_no
-import tempfile
-import os
-import shutil
-from subprocess import call
-
-
-def destroy(path):
-    try:
-        shutil.rmtree(path)
-    except WindowsError as whee:
-        call(['rmdir', '/S', path], shell=True)
-
-
-def test_make_symlink():
-    test_loc = os.path.join(os.path.expanduser('~'), 'symlinking_test')
-    try:
-        os.mkdir(test_loc)
-    except WindowsError as whee:
-        destroy(test_loc)
-        os.mkdir(test_loc)
-    src = open
-    link_name = 'link'
-    src = os.path.join(test_loc, link_name)
-    os.mkdir(src)
-    os.mkdir(os.path.join(test_loc, 'dst'))
-    dst = os.path.join(test_loc, 'dst', link_name)
-    # create a temporary file in the target location called `link_name`
-    with open(dst, 'w+') as tmp_file:
-        tmp_file.write('test')
-    assert_true(make_symlink(dst=dst, src=src, silently_move=True))
-    destroy(dst)
-    # make an empty temporary folder in the target location called `link_name`
-    os.mkdir(dst)
-    assert_true(make_symlink(dst=dst, src=src, silently_move=True))
-    destroy(dst)
-    # make a non-empty temporary tree in the target location called `link_name`
-    os.mkdir(dst)
-    os.mkdir(os.path.join(dst, 'sub_folder'))
-    assert_true(make_symlink(dst=dst, src=src, silently_move=True))
-    destroy(dst)
-
-    shutil.rmtree(test_loc)

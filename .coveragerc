@@ -1,0 +1,11 @@
+[run]
+source=vttools
+[report]
+omit =
+    */python?.?/*
+    */site-packages/nose/*
+    /vttools/tests/*
+    /vttools/testing/*
+    
+exclude_lines =
+    def set_default
