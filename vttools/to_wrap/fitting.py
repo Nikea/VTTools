@@ -34,9 +34,8 @@
 ########################################################################
 import sys
 from skxray.fitting.api import (QuadraticModel, GaussianModel,
-                                 LorentzianModel, Lorentzian2Model)
-
-from lmfit.models import ExpressionModel
+                                LorentzianModel, Lorentzian2Model,
+                                ExpressionModel)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -285,9 +284,3 @@ for func_name in [gaussian_model, lorentzian2_model, lorentzian_model]:
     func_name.amplitude_vary = ['fixed', 'free', 'bounded']
     func_name.center_vary = ['fixed', 'free', 'bounded']
     func_name.sigma_vary = ['fixed', 'free', 'bounded']
-
-
-function_list = [fit_engine, fit_engine_list, quadratic_model]
-
-for func_name in function_list:
-    setattr(mod, func_name.__name__, func_name)
