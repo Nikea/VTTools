@@ -41,7 +41,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from nose.tools import assert_true
-from nsls2.testing.decorators import known_fail_if, skip_if
+from skxray.testing.decorators import known_fail_if, skip_if
 from vttools.utils import make_symlink, query_yes_no
 import tempfile
 import os
