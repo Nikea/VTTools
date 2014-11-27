@@ -312,7 +312,7 @@ def test_guess_type():
     target_strings = ('float', 'int', 'complex', 'str')
 
     for tst, tar in zip(test_strting, target_strings):
-        yield _func_helper, wrap_lib._guess_type, tst, tar
+        yield _func_helper, wrap_lib._guess_enum_val_type, tst, tar
 
 
 def test_dicts_match():

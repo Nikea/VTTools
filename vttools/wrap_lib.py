@@ -100,27 +100,27 @@ def docstring_class(pyobj):
     ClassDoc
         If pyobj is a class
 
-    A dictionary of the formatted numpy docstring can be
-        accessed by :code:`return_val._parsed_data`
-        Keys:
-            'Signature': '',
-            'Summary': [''],
-            'Extended Summary': [],
-            'Parameters': [],
-            'Returns': [],
-            'Raises': [],
-            'Warns': [],
-            'Other Parameters': [],
-            'Attributes': [],
-            'Methods': [],
-            'See Also': [],
-            'Notes': [],
-            'Warnings': [],
-            'References': '',
-            'Examples': '',
-            'index': {}
-    Taken from:
-        https://github.com/numpy/numpydoc/blob/master/numpydoc/docscrape.py#L94
+        A dictionary of the formatted numpy docstring can be
+            accessed by :code:`return_val._parsed_data`
+            Keys:
+                'Signature': '',
+                'Summary': [''],
+                'Extended Summary': [],
+                'Parameters': [],
+                'Returns': [],
+                'Raises': [],
+                'Warns': [],
+                'Other Parameters': [],
+                'Attributes': [],
+                'Methods': [],
+                'See Also': [],
+                'Notes': [],
+                'Warnings': [],
+                'References': '',
+                'Examples': '',
+                'index': {}
+        Taken from:
+            https://github.com/numpy/numpydoc/blob/master/numpydoc/docscrape.py#L94
     """
     if inspect.isclass(pyobj):
         return ClassDoc(pyobj)
@@ -143,27 +143,27 @@ def docstring_func(pyobj):
     FunctionDoc
         If pyobj is a function or class method
 
-    A dictionary of the formatted numpy docstring can be
-        accessed by :code:`return_val._parsed_data`
-        Keys:
-            'Signature': '',
-            'Summary': [''],
-            'Extended Summary': [],
-            'Parameters': [],
-            'Returns': [],
-            'Raises': [],
-            'Warns': [],
-            'Other Parameters': [],
-            'Attributes': [],
-            'Methods': [],
-            'See Also': [],
-            'Notes': [],
-            'Warnings': [],
-            'References': '',
-            'Examples': '',
-            'index': {}
-    Taken from:
-        https://github.com/numpy/numpydoc/blob/master/numpydoc/docscrape.py#L94
+        A dictionary of the formatted numpy docstring can be
+            accessed by :code:`return_val._parsed_data`
+            Keys:
+                'Signature': '',
+                'Summary': [''],
+                'Extended Summary': [],
+                'Parameters': [],
+                'Returns': [],
+                'Raises': [],
+                'Warns': [],
+                'Other Parameters': [],
+                'Attributes': [],
+                'Methods': [],
+                'See Also': [],
+                'Notes': [],
+                'Warnings': [],
+                'References': '',
+                'Examples': '',
+                'index': {}
+        Taken from:
+            https://github.com/numpy/numpydoc/blob/master/numpydoc/docscrape.py#L94
     """
     if inspect.isfunction(pyobj) or inspect.ismethod(pyobj):
         return FunctionDoc(pyobj)
@@ -229,6 +229,9 @@ def _type_optional(type_str):
 
     return type_str, is_optional
 
+
+_OR_REGEX = re.compile(r'\bor\b')
+_OF_REGEX = re.compile(r'\bof\b')
 _ENUM_RE = re.compile('\{(.*)\}')
 _RE_DICT = {
     "object": re.compile('^(?i)(any|object)$'),
@@ -271,21 +274,21 @@ sig_map = {
 
 
 precedence_list = ('list',
-                       'tuple',
-                       'seq',
-                       'dict',
-                       'array',
-                       'matrix',
-                       'dtype',
-                       'str',
-                       'scalar',
-                       'complex',
-                       'float',
-                       'int',
-                       'bool',
-                       'file',
-                       'callable',
-                       'object')
+                   'tuple',
+                   'seq',
+                   'dict',
+                   'array',
+                   'matrix',
+                   'dtype',
+                   'str',
+                   'scalar',
+                   'complex',
+                   'float',
+                   'int',
+                   'bool',
+                   'file',
+                   'callable',
+                   'object')
 
 
 #   RE Details:
@@ -318,7 +321,7 @@ def _enum_type(type_str):
     if bool(m):
         is_enum = True
         enum_list = [_.strip('\'\" ') for _ in m.group(1).split(',')]
-        guessed_types = [_guess_type(_) for _ in enum_list]
+        guessed_types = [_guess_enum_val_type(_) for _ in enum_list]
         type_out = guessed_types[0]
         if not all(_ == type_out for _ in guessed_types[1:]):
             raise ValueError('Mixed type enum, docstring parameters are '
@@ -367,7 +370,7 @@ def _truncate_description(original_description, word_cnt_to_include):
     return short_description
 
 
-def _guess_type(stringy_val):
+def _guess_enum_val_type(stringy_val):
     """
     Helper function to guess the type of values in an enum are.
 
@@ -397,9 +400,6 @@ def _guess_type(stringy_val):
             pass
     # give up and assume it is a string
     return 'str'
-
-_OR_REGEX = re.compile(r'\bor\b')
-_OF_REGEX = re.compile(r'\bof\b')
 
 
 def _normalize_type(the_type):
@@ -472,6 +472,33 @@ def _type_precedence(left, right):
     return left if left_i < right_i else right
 
 
+def _generate_port_dicts(doc_struct, func):
+    """
+    Process the docstring structure to format the
+    dictionaries need to
+    """
+    pass
+
+
+def _enums_equal(left, right):
+    """
+    Compare two lists of enumn and determine if they are equivalent.
+    """
+    return set(str(_) for _ in left) == set(str(_) for _ in right)
+
+_enum_error = ('Attempting to automatically create '
+              'an enum port for the function named'
+              ' {0}. The values for the enum port '
+                'defined in the doc string are {1} '
+                'with length {2} and there is a '
+                'function attribute with values {3} '
+                'and length {4}.  Please make sure '
+                'the values in the docstring agree '
+                'with the values in the function '
+                'attribute, as I\'m not sure which '
+                'to use.')
+
+
 def define_input_ports(docstring, func):
     """Turn the 'Parameters' fields into VisTrails input ports
 
@@ -491,12 +518,8 @@ def define_input_ports(docstring, func):
     """
     input_ports = []
     short_description_word_count = 4
+
     default_dict = _default_vals(func)
-    if 'Parameters' not in docstring:
-        # raised if 'Parameters' is not in the docstring
-        raise KeyError('Docstring is not formatted correctly. There is no '
-                       '"Parameters" field. Your docstring: {0}'
-                       ''.format(docstring))
 
     for (the_name, the_type, the_description) in docstring['Parameters']:
         if the_name == 'output':
@@ -505,7 +528,7 @@ def define_input_ports(docstring, func):
         the_type, is_enum, enum_list = _enum_type(the_type)
         the_type = _normalize_type(the_type)
         if the_type is None:
-            raise ValueError("")
+            raise AutowrapError("")
         # Trim parameter descriptions for incorporation into vistrails
         short_description = _truncate_description(the_description,
                                                   short_description_word_count)
@@ -552,33 +575,6 @@ def define_input_ports(docstring, func):
     return input_ports
 
 
-def _generate_port_dicts(doc_struct, func):
-    """
-    Process the docstring structure to format the
-    dictionaries need to
-    """
-    pass
-
-
-def _enums_equal(left, right):
-    """
-    Compare two lists of enumn and determine if they are equivalent.
-    """
-    return set(str(_) for _ in left) == set(str(_) for _ in right)
-
-_enum_error = ('Attempting to automatically create '
-              'an enum port for the function named'
-              ' {0}. The values for the enum port '
-                'defined in the doc string are {1} '
-                'with length {2} and there is a '
-                'function attribute with values {3} '
-                'and length {4}.  Please make sure '
-                'the values in the docstring agree '
-                'with the values in the function '
-                'attribute, as I\'m not sure which '
-                'to use.')
-
-
 def define_output_ports(docstring):
     """
     Turn the 'Returns' fields into VisTrails output ports
@@ -596,41 +592,37 @@ def define_output_ports(docstring):
     """
 
     output_ports = []
-    # Check to make sure that there is a 'Returns' section in the docstring
-    if 'Returns' not in docstring or len(docstring['Returns']) == 0:
-        # If the 'Returns' section is included, but does not have any
-        # parameters listed, then check the 'Parameters' section to see
-        # whether the output is actually included as an optional input
-        for (the_name, the_type, the_description) in docstring['Parameters']:
-            # Accounts for extraneous notes or lines in doc string that are not
-            # actually input or output parameters
-            if the_type == '':
-                print("malformed docstirng on {}".format(the_name))
-                continue
 
-            if the_name.lower() == 'output':
-                the_type = _normalize_type(the_type)
-
-                output_ports.append(OPort(name=the_name,
-                                          signature=sig_map[the_type]))
-    else:
-        for (the_name, the_type, the_description) in docstring['Returns']:
-            if the_type == '':
-                print("malformed docstirng on {}".format(the_name))
-                continue
+    # If the 'Returns' section is included, but does not have any
+    # parameters listed, then check the 'Parameters' section to see
+    # whether the output is actually included as an optional input
+    for (the_name, the_type, the_description) in docstring['Parameters']:
+        if the_name.lower() == 'output':
             the_type = _normalize_type(the_type)
+            if the_type is None:
+                # TODO dillify
+                raise AutowrapError("Malformed type")
+            output_ports.append(OPort(name=the_name,
+                                      signature=sig_map[the_type]))
 
-            logger.debug("the_name is {0}. \n\tthe_type is {1}. "
-                         "\n\tthe_description is {2}"
-                         "".format(the_name, the_type, the_description))
-            try:
-                output_ports.append(OPort(name=the_name,
-                                          signature=sig_map[the_type]))
-            except ValueError as ve:
-                logger.error('ValueError raised for Returns parameter with '
-                             'name: {0}\n\ttype: {1}\n\tdescription: {2}'
-                             ''.format(the_name, the_type, the_description))
-                six.reraise(ValueError, ve, sys.exc_info()[2])
+    # now look at the return Returns section
+    for (the_name, the_type, the_description) in docstring['Returns']:
+        the_type = _normalize_type(the_type)
+        if the_type is None:
+            # TODO dillify
+            raise AutowrapError("Malformed type")
+
+        logger.debug("the_name is {0}. \n\tthe_type is {1}. "
+                     "\n\tthe_description is {2}"
+                     "".format(the_name, the_type, the_description))
+        try:
+            output_ports.append(OPort(name=the_name,
+                                      signature=sig_map[the_type]))
+        except ValueError as ve:
+            logger.error('ValueError raised for Returns parameter with '
+                         'name: {0}\n\ttype: {1}\n\tdescription: {2}'
+                         ''.format(the_name, the_type, the_description))
+            six.reraise(ValueError, ve, sys.exc_info()[2])
     return output_ports
 
 
