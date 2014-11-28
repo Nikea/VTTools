@@ -767,10 +767,10 @@ def wrap_function(func_name, module_path,
         # if we can't, just use the docstring
         doc_string = func.__doc__
     # create the VisTrails input ports
-    input_ports = define_input_ports(doc._parsed_data, func)
+    input_ports = define_input_ports(doc, func)
     # pprint.pprint(input_ports)
     # create the VisTrails output ports
-    output_ports = define_output_ports(doc._parsed_data)
+    output_ports = define_output_ports(doc)
     if add_input_dict:
         # define a dictionary input port if necessary
         dict_port = IPort(name='input_dict', signature=('basic:Dictionary'),
