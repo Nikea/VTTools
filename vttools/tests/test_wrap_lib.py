@@ -153,7 +153,8 @@ array_type_strings = ('array', 'array-like', 'array_like', 'array like',
                       'np.array', 'np.ndarray', '(N, M, P) array',
                       '(..., K) array',
                       '(..., M, N) array_like', '(N, M, P) ndarray',
-                      '(M,) array_like', '(M) array_like', 'MxN array')
+                      '(M,) array_like', '(M) array_like', 'MxN array',
+                      'array_like, shape (M, N)', 'ndarray, float')
 matrix_type_strings = (tuple('{}matrix'.format(p)
                              for p in ('np.', 'numpy.', '')) +
                        ('(N, M) matrix', ))
@@ -163,7 +164,8 @@ list_type_strings = ('list', 'List', 'list-like', 'list_like',
 
 tuple_type_strings = ('tuple'),
 seq_type_strings = ('sequence',)
-dtype_type_strings = ('dtype', 'dtype like', 'np.dtype', 'numpy.dtype')
+dtype_type_strings = ('dtype', 'dtype like', 'np.dtype', 'numpy.dtype',
+                      'data-type')
 bool_type_strings = ('bool', 'boolean')
 file_type_strings = ('file',)
 scalar_type_strings = ('scalar', )
