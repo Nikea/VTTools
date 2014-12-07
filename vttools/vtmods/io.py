@@ -84,4 +84,4 @@ class ReadTiff(Module):
 
 
 def vistrails_modules():
-    return [ReadNumpy]
+    return [ReadTiff, ReadNumpy]
