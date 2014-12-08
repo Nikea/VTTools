@@ -33,7 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.                                          #
 ########################################################################
 from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+                        )
 import six
 from bubblegum.qt_widgets import query_widget
 from logging import Handler
