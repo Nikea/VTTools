@@ -15,7 +15,8 @@ setup(
     author='Brookhaven National Lab',
     packages=["vttools",
               'vttools.vtmods',
-              'vttools.vtmods.import_lists'
+              'vttools.vtmods.import_lists',
+              'vttools.to_wrap'
               ],
     include_dirs=[np.get_include()],
     package_data = {'vttools.vtmods.import_lists': ['*.yaml']}
