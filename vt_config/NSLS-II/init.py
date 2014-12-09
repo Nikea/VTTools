@@ -40,13 +40,16 @@ from __future__ import (absolute_import, division, print_function,
 import six
 import logging
 import sys
-import yaml
+
 import importlib
 import collections
-import os
+
 from vttools import wrap_lib
 from vttools.vtmods.import_lists import load_config
 from vttools.wrap_lib import AutowrapError
+
+import numpy
+
 logger = logging.getLogger(__name__)
 
 # get modules to import
@@ -84,7 +87,20 @@ def get_modules():
 
     vtmods = [vtmod for mod in pymods for vtmod in mod.vistrails_modules()]
 
-    all_mods = vtmods + vtfuncs  # + vtclasses
+    funcs_to_wrap = list(set([atr.__name__ for atr in
+                     (getattr(numpy, atr_name) for atr_name in dir(numpy)
+                      if not atr_name.startswith('_'))
+                      if callable(atr) and type(atr) is not type]))
+
+    numpy_mods = []
+    for ftw in funcs_to_wrap:
+        try:
+            tmp = wrap_lib.wrap_function(ftw, 'numpy')
+            numpy_mods.append(tmp)
+        except Exception as e:
+            print(e)
+
+    all_mods = vtmods + vtfuncs  + numpy_mods  # + vtclasses
     if len(all_mods) != len(set(all_mods)):
         raise ValueError('Some modules have been imported multiple times.\n'
                          'Full list: {0}'
