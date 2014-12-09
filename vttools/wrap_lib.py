@@ -521,11 +521,11 @@ def define_input_ports(docstring, func, short_description_word_count=4):
         if the_name == 'output':
             continue
         # parse and normalize
-        the_type, is_optional = _type_optional(the_type)
-        the_type, is_enum, enum_list = _enum_type(the_type)
-        the_type = _normalize_type(the_type)
-        if the_type is None:
-            raise AutowrapError("")
+        type_base, is_optional = _type_optional(the_type)
+        type_base, is_enum, enum_list = _enum_type(type_base)
+        normed_type = _normalize_type(type_base)
+        if normed_type is None:
+            raise AutowrapError("Malformed type <{}>".format(the_type))
 
         # Trim parameter descriptions for incorporation into vistrails
         short_description = _truncate_description(the_description,
@@ -533,14 +533,14 @@ def define_input_ports(docstring, func, short_description_word_count=4):
 
         logger.debug("the_name is {0}. \n\tthe_type is {1} and it is "
                      "optional: {3}. \n\tthe_description is {2}"
-                     "".format(the_name, the_type,
+                     "".format(the_name, normed_type,
                                short_description,
                                is_optional))
 
         for port_name in (_.strip() for _ in the_name.split(',')):
             if not port_name:
                 continue
-            port_type = the_type
+            port_type = normed_type
             port_is_enum = is_enum
             port_enum_list = enum_list
             # start with the easy ones
@@ -598,19 +598,19 @@ def define_output_ports(docstring, short_description_word_count=4):
 
     # now look at the return Returns section
     for (the_name, the_type, the_description) in docstring['Returns']:
-        the_type, is_optional = _type_optional(the_type)
+        base_type, is_optional = _type_optional(the_type)
         if is_optional:
             raise AutowrapError("Returns can not be optional")
-        the_type = _normalize_type(the_type)
+        normed_type = _normalize_type(base_type)
 
-        if the_type is None:
-            raise AutowrapError("Malformed type")
+        if normed_type is None:
+            raise AutowrapError("Malformed type <{}>".format(the_type))
 
         for port_name in (_.strip() for _ in the_name.split(',')):
             if not port_name:
                 raise AutowrapError("A Port with no name")
             pdict = {'name': port_name,
-                     'signature': sig_map[the_type]}
+                     'signature': sig_map[normed_type]}
 
             output_ports.append(OPort(**pdict))
 
