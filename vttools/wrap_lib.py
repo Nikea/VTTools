@@ -245,7 +245,7 @@ _RE_DICT = {
     "bool": re.compile('^(?i)bool(ean)?$'),
     "file": re.compile('^(?i)file?$'),
     "scalar": re.compile('^(?i)scalar?$'),
-    "float": re.compile('^(?i)(((np|numpy)\.)?float(16|32|64|128)?|double|single)$'),  # noqa,
+    "float": re.compile('^(?i)(((np|numpy)\.)?float(16|32|64|128)?|double|single)'),  # noqa,
     "int": re.compile('^(?i)((np|numpy)\.)?u?int(eger)?(8|16|32|64)?( value|s)?$'),      # noqa
     "complex": re.compile('^(?i)complex$'),
     "dict": re.compile('^(?i)dict(ionary)?$'),
