@@ -600,7 +600,7 @@ def define_output_ports(docstring, short_description_word_count=4):
     for (the_name, the_type, the_description) in docstring['Returns']:
         base_type, is_optional = _type_optional(the_type)
         if is_optional:
-            raise AutowrapError("Returns can not be optional")
+            continue
         normed_type = _normalize_type(base_type)
 
         if normed_type is None:
