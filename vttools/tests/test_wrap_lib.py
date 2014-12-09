@@ -167,7 +167,7 @@ seq_type_strings = ('sequence',)
 dtype_type_strings = ('dtype', 'dtype like', 'np.dtype', 'numpy.dtype',
                       'data-type', 'data type', 'data type code')
 bool_type_strings = ('bool', 'boolean')
-file_type_strings = ('file',)
+file_type_strings = ('file', 'filename', 'file handle')
 scalar_type_strings = ('scalar', 'number')
 
 float_type_strings = (tuple('{}float{}'.format(prefix, n)

@@ -247,7 +247,7 @@ _RE_DICT = {
     "seq": re.compile('^(?i)sequence(-|_| )?(like)?'),
     "dtype": re.compile('^(?i)((np|numpy)\.)?d(ata)?[- _]?type[-_ ]?(like|code)?$'),
     "bool": re.compile('^(?i)bool(ean)?$'),
-    "file": re.compile('^(?i)file?$'),
+    "file": re.compile('^(?i)file(name)?( handle)?$'),
     "scalar": re.compile('^(?i)(scalar|number)$'),
     "float": re.compile('^(?i)(((np|numpy)\.)?float(16|32|64|128)?|double|single)'),  # noqa,
     "int": re.compile('^(?i)((np|numpy)\.)?u?int(eger)?(8|16|32|64)?( value|s)?$'),      # noqa
