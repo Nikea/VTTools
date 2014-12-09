@@ -190,14 +190,14 @@ def _default_vals(pyobj):
         Dictionary containing PARAMETER : DEFAULT_VALUE pairs.
     """
     default_dict = {}
-    func_args = inspect.getargspec(pyobj)
-    if bool(func_args[3]):
-        arg_count = len(func_args[0])
-        default_count = len(func_args[3])
+    try:
+        names, _, _, d_vals = inspect.getargspec(pyobj)
+        if bool(d_vals):
+            for arg_key, d_val in zip(names, d_vals):
+                default_dict[arg_key] = d_val
+    except TypeError:
+        logging.debug("getargspec failed on %s", pyobj.__name__)
 
-        for val in range(len(func_args[3])):
-            default_dict[func_args[0][(arg_count-default_count+val)]] = \
-                func_args[3][val]
     return default_dict
 
 
