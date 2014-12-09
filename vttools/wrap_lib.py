@@ -548,6 +548,13 @@ def define_input_ports(docstring, func, short_description_word_count=4):
                      'label': str(short_description),
                      'optional': is_optional,
                      'signature': sig_map[port_type]}
+
+
+            try:
+                pdict['default'] = default_dict[port_name]
+            except KeyError:
+                pass
+
             # deal with if the function as an enum attribute
             if hasattr(func, port_name):
                 f_enums = getattr(func, port_name)
