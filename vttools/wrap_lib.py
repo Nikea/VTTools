@@ -518,7 +518,7 @@ def define_input_ports(docstring, func, short_description_word_count=4):
 
     for (the_name, the_type, the_description) in docstring['Parameters']:
         # skip in-place returns
-        if the_name == 'output':
+        if the_name in ['output', 'out']:
             continue
         # parse and normalize
         type_base, is_optional = _type_optional(the_type)
@@ -618,7 +618,7 @@ def define_output_ports(docstring, short_description_word_count=4):
     # optional input (mostly for in-place operations)
     if len(output_ports) < 1:
         for (the_name, the_type, the_description) in docstring['Parameters']:
-            if the_name.lower() == 'output':
+            if the_name.lower() in ['output', 'out']:
                 the_type, _ = _type_optional(the_type)
                 the_type = _normalize_type(the_type)
                 if the_type is None:
