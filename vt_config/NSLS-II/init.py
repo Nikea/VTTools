@@ -66,8 +66,17 @@ def get_modules():
                   for module_name in mod_lst]
         # autowrap functions
         func_list = import_dict['autowrap_func']
-        vtfuncs = [wrap_lib.wrap_function(**func_dict)
-                   for func_dict in func_list]
+        vtfuncs = []
+        for func_dict in func_list:
+            try:
+                tmp = wrap_lib.wrap_function(**func_dict)
+                vtfuncs.append(tmp)
+            except Exception as e:
+                print('*' * 25)
+                print('failed on {}'.format(func_dict))
+                print(e)
+                print('*' * 25)
+
         # autowrap classes
         # class_list = import_dict['autowrap_classes']
         # vtclasses = [wrap_lib.wrap_function(**func_dict)
@@ -98,7 +107,11 @@ def get_modules():
             tmp = wrap_lib.wrap_function(ftw, 'numpy')
             numpy_mods.append(tmp)
         except Exception as e:
+            print('*' * 25)
+            print('failed on {}'.format(ftw))
             print(e)
+            print('*' * 25)
+
 
     all_mods = vtmods + vtfuncs  + numpy_mods  # + vtclasses
     if len(all_mods) != len(set(all_mods)):
