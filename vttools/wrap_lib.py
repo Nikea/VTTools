@@ -235,16 +235,16 @@ _COMMA_REGEX = re.compile(r'\b, ?\b')
 _ENUM_RE = re.compile('\{(.*)\}')
 _RE_DICT = {
     "object": re.compile('^(?i)(any|object)$'),
-    "array": re.compile('^(?i)(\(?((([A-Z0-9.]+(,|x)? *)+)|, ?)\)?)? *(((np|numpy)\.)?(nd)?array(_|-| )?(like)?)(, shape \(([a-zA-Z],? *)+\))?$'),  # noqa,
+    "array": re.compile('^(?i)(\(?((([A-Z0-9.]+(,|x)? *)+)|, ?)\)?)? *(((np|numpy)\.)?(nd)?array(_|-| |s)?(like)?)(, shape \(([a-zA-Z],? *)+\))?$'),  # noqa,
     "matrix": re.compile('^(?i)(\((([A-Z0-9.]+,? *){2} ?)\))? *(((np|numpy)\.)?matrix(_|-| )?(like)?)$'),  # noqa,
     # note these three do not match end so 'list of ... ' matches
     "list": re.compile('^(?i)list(-|_| )?(like)?'),
     "tuple": re.compile('^(?i)tuple(-|_| )?(like)?'),
     "seq": re.compile('^(?i)sequence(-|_| )?(like)?'),
-    "dtype": re.compile('^(?i)((np|numpy)\.)?d(ata-)?type(-|_| )?(like)?$'),
+    "dtype": re.compile('^(?i)((np|numpy)\.)?d(ata)?[- _]?type[-_ ]?(like|code)?$'),
     "bool": re.compile('^(?i)bool(ean)?$'),
     "file": re.compile('^(?i)file?$'),
-    "scalar": re.compile('^(?i)scalar?$'),
+    "scalar": re.compile('^(?i)(scalar|number)$'),
     "float": re.compile('^(?i)(((np|numpy)\.)?float(16|32|64|128)?|double|single)'),  # noqa,
     "int": re.compile('^(?i)((np|numpy)\.)?u?int(eger)?(8|16|32|64)?( value|s)?$'),      # noqa
     "complex": re.compile('^(?i)complex$'),
