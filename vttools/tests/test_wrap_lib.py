@@ -97,8 +97,8 @@ def _optional_test_helper(tst, tar):
 
 
 def test_type_optional():
-    test_string = ('array, optional', 'array')
-    targets = (True, False)
+    test_string = ('array, optional', 'array', 'array (optional)')
+    targets = (True, False, True)
 
     for tst, tar in zip(test_string, targets):
         yield _optional_test_helper, tst, tar

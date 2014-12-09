@@ -222,9 +222,12 @@ def _type_optional(type_str):
         If the input is optional
     """
     type_str = type_str.strip(' .')
-    is_optional = type_str.endswith('optional')
-    if is_optional:
-        type_str = type_str[:-8].strip(', ')
+    matches = _OPTIONAL_RE.search(type_str)
+    if matches:
+        is_optional = True
+        type_str, opt_str = matches.groups()
+    else:
+        is_optional = False
 
     return type_str, is_optional
 
@@ -233,6 +236,7 @@ _OR_REGEX = re.compile(r'\bor\b')
 _OF_REGEX = re.compile(r'\bof\b')
 _COMMA_REGEX = re.compile(r'\b, ?\b')
 _ENUM_RE = re.compile('\{(.*)\}')
+_OPTIONAL_RE = re.compile('(.*?),? *(\(?optional\)?)')
 _RE_DICT = {
     "object": re.compile('^(?i)(any|object)$'),
     "array": re.compile('^(?i)(\(?((([A-Z0-9.]+(,|x)? *)+)|, ?)\)?)? *(((np|numpy)\.)?(nd)?array(_|-| |s)?(like)?)(, shape \(([a-zA-Z],? *)+\))?$'),  # noqa,
