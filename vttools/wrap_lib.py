@@ -237,14 +237,17 @@ _OF_REGEX = re.compile(r'\bof\b')
 _COMMA_REGEX = re.compile(r'\b, ?\b')
 _ENUM_RE = re.compile('\{(.*)\}')
 _OPTIONAL_RE = re.compile('(.*?),? *(\(?optional\)?)')
+_nd_prefx = '(\(?((([A-Z0-9a-z.]+[,x]? *)+)|, ?|[A-Za-z0-9]-?D)\)?)'
+
+
 _RE_DICT = {
     "object": re.compile('^(?i)(any|object)$'),
-    "array": re.compile('^(?i)(\(?((([A-Z0-9.]+(,|x)? *)+)|, ?)\)?)? *(((np|numpy)\.)?(nd)?array(_|-| |s)?(like)?)(, shape \(([a-zA-Z],? *)+\))?$'),  # noqa,
+    "array": re.compile('^(?i){}? *(((np|numpy)\.)?(nd)?array(_|-| |s)?(like)?)(, shape \(([a-zA-Z],? *)+\))?$'.format(_nd_prefx)),  # noqa,
     "matrix": re.compile('^(?i)(\((([A-Z0-9.]+,? *){2} ?)\))? *(((np|numpy)\.)?matrix(_|-| )?(like)?)$'),  # noqa,
     # note these three do not match end so 'list of ... ' matches
     "list": re.compile('^(?i)list(-|_| )?(like)?'),
-    "tuple": re.compile('^(?i)tuple(-|_| )?(like)?'),
-    "seq": re.compile('^(?i)sequence(-|_| )?(like)?'),
+    "tuple": re.compile('^(?i){}? *tuple(-|_| )?(like)?'.format(_nd_prefx)),
+    "seq": re.compile('^(?i){}? *sequence(-|_| )?(like)?'.format(_nd_prefx)),
     "dtype": re.compile('^(?i)((np|numpy)\.)?d(ata)?[- _]?type[-_ ]?(like|code)?$'),
     "bool": re.compile('^(?i)bool(ean)?$'),
     "file": re.compile('^(?i)file(name)?( handle)?$'),
