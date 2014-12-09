@@ -74,6 +74,9 @@ autowrap_func:
 - func_name: fit_engine_list
   module_path: vttools.to_wrap.fitting
   namespace: fitting
+- func_name: expression_model
+  module_path: vttools.to_wrap.fitting
+  namespace: fitting
 # CALIBRATION
 - func_name: refine_center
   module_path: skxray.calibration

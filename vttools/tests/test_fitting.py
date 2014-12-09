@@ -43,7 +43,7 @@ from numpy.testing import (assert_array_equal, assert_array_almost_equal,
 from skxray.testing.decorators import known_fail_if
 from vttools.to_wrap.fitting import (gaussian_model, lorentzian_model,
                                      lorentzian2_model, quadratic_model,
-                                     fit_engine)
+                                     fit_engine, fit_engine_list, expression_model)
 from nose.tools import (assert_equal, assert_true, raises)
 
 
@@ -114,6 +114,7 @@ def test_lorentzian2_fit():
     fitted_val = (out['area'], out['center'], out['sigma'])
     assert_array_almost_equal(true_val, fitted_val)
 
+
 def test_quadratic_fit():
     x = np.arange(-1, 1, .01)
     a = 1
@@ -133,3 +134,31 @@ def test_quadratic_fit():
     out = result.values
     fitted_val = (out['a'], out['b'], out['c'])
     assert_array_almost_equal(true_val, fitted_val)
+
+
+def test_fit_engine_list():
+    a = 1
+    b = 2
+    c = 3
+    m = quadratic_model('',
+                        a, 'free', [-1, 1],
+                        b, 'free', [-1, 1],
+                        c, 'free', [-1, 1])
+    x = np.arange(-1, 1, 0.01)
+    y = x**2 + 1
+
+    datav = [(x, y), (x, y+2)]
+    out = fit_engine_list(m, datav)
+    assert_equal(len(out), 2)
+
+
+def test_expression_model():
+
+    inputv = 'exp(-a*x)'
+
+    x = np.arange(-1, 1, 0.01)
+    y = np.exp(-x)
+
+    mod = expression_model(inputv)
+    out = mod.fit(y, x=x, a=0.1)
+    assert_equal(1, out.values['a'])

@@ -34,7 +34,8 @@
 ########################################################################
 import sys
 from skxray.fitting.api import (QuadraticModel, GaussianModel,
-                                 LorentzianModel, Lorentzian2Model)
+                                LorentzianModel, Lorentzian2Model,
+                                ExpressionModel)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -148,6 +149,24 @@ def fit_engine_list(g, data):
         result = g.fit(v[1], x=v[0])
         result_list.append(result)
     return result_list
+
+
+def expression_model(model_exp):
+    """
+    This function creates a Model from a user-supplied expression.
+
+    Parameters
+    ----------
+    model_exp : str
+        expression of the model
+
+    Returns
+    -------
+    mod : array_like
+        object of fitting results
+    """
+    mod = ExpressionModel(model_exp)
+    return mod
 
 
 def set_range(model_name,
@@ -265,9 +284,3 @@ for func_name in [gaussian_model, lorentzian2_model, lorentzian_model]:
     func_name.amplitude_vary = ['fixed', 'free', 'bounded']
     func_name.center_vary = ['fixed', 'free', 'bounded']
     func_name.sigma_vary = ['fixed', 'free', 'bounded']
-
-
-function_list = [fit_engine, fit_engine_list, quadratic_model]
-
-for func_name in function_list:
-    setattr(mod, func_name.__name__, func_name)
