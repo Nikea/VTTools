@@ -12,8 +12,8 @@ import_modules:
     vttools.vtmods:
         - .io
         - .vis
-        - .utils
-        - .broker
+#        - .utils
+#        - .broker
         - .fitting
 
 # list of functions to autowrap

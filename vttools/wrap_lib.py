@@ -34,7 +34,7 @@
 ########################################################################
 
 from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
+                        print_function)
 import six
 import inspect
 import importlib
@@ -487,11 +487,11 @@ def define_input_ports(docstring, func):
             port_is_enum = is_enum
             port_enum_list = enum_list
             # start with the easy ones
-            pdict = {'name': port_name,
-                     'label': short_description,
+            pdict = {'name': str(port_name),
+                     'label': str(short_description),
                      'optional': is_optional,
-                     'signature': pytype_to_vtsig(param_type=port_type,
-                                                  param_name=port_name)}
+                     'signature': str(pytype_to_vtsig(param_type=port_type,
+                                                  param_name=port_name))}
 
             # deal with if the function as an enum attribute
             if hasattr(func, port_name):
@@ -518,8 +518,8 @@ def define_input_ports(docstring, func):
                 port_enum_list = f_enums
                 port_is_enum = True
             if port_is_enum:
-                pdict['entry_type'] = 'enum'
-                pdict['values'] = port_enum_list
+                pdict['entry_type'] = str('enum')
+                pdict['values'] = [str(x) for x in port_enum_list]
 
             logger.debug('port_param_dict: {0}'.format(pdict))
             input_ports.append(IPort(**pdict))
@@ -576,7 +576,7 @@ def define_output_ports(docstring):
                 if the_type == '':
                     continue
                 the_type = _check_alt_types(the_type)
-                output_ports.append(OPort(name=the_name,
+                output_ports.append(OPort(name=str(the_name),
                                           signature=pytype_to_vtsig(
                                               param_type=the_type,
                                               param_name=the_name)))

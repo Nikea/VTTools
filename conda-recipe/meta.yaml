@@ -1,0 +1,33 @@
+package:
+  name: vttools
+  version: {{ environ['GIT_DESCRIBE_TAG'] }}.post{{ environ['GIT_DESCRIBE_NUMBER'] }}
+
+source:
+  git_url: ../
+
+
+build:
+  number: 0
+  string: {{ environ.get('GIT_BUILD_STR', '') }}_np{{ np }}py{{ py }}
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - vistrails
+  run:
+    - python
+    - vistrails
+    - numpy
+    - scikit-xray
+    - pyyaml
+    - numpydoc
+    - tifffile
+    - bubblegum
+
+test:
+  imports:
+     - vttools
+
+about:
+  license: 3-Clause BSD
