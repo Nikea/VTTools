@@ -96,10 +96,19 @@ def get_modules():
 
     vtmods = [vtmod for mod in pymods for vtmod in mod.vistrails_modules()]
 
-    funcs_to_wrap = list(set([atr.__name__ for atr in
-                     (getattr(numpy, atr_name) for atr_name in dir(numpy)
-                      if not atr_name.startswith('_'))
-                      if callable(atr) and type(atr) is not type]))
+    np_black_list = ['who', 'mafromtxt', 'ndfromtxt', 'source', 'info', 'add_newdoc_ufunc',
+                     'frombuffer', 'fromiter', 'frompyfunc', 'getbuffer', 'newbuffer', 'pkgload',
+                     'recfromcsv', 'recfromtxt', 'savez', 'savez_compressed', 'set_printoptions',
+                     'seterrcall', 'tensordot', 'genfromtxt', 'ppmt', 'pv', 'rate', 'nper', 'fv',
+                     'ipmt'
+                     ]
+
+
+    funcs_to_wrap = [atr_name for atr_name, atr in
+                     ((atr_name, getattr(numpy, atr_name)) for atr_name in dir(numpy)
+                      if not (atr_name.startswith('_') or 'busday' in atr_name or
+                              atr_name in np_black_list))
+                      if callable(atr) and type(atr) is not type]
 
     numpy_mods = []
     for ftw in funcs_to_wrap:
