@@ -527,10 +527,25 @@ def define_input_ports(docstring, func, short_description_word_count=4):
         # skip in-place returns
         if the_name in ['output', 'out']:
             continue
+        # deal with np.frexp
+        if not the_type and ':' in the_name:
+            the_name, the_type = the_name.split(':')
         # parse and normalize
         type_base, is_optional = _type_optional(the_type)
         type_base, is_enum, enum_list = _enum_type(type_base)
-        normed_type = _normalize_type(type_base)
+        normed_type = None
+        # this is to deal with malformed docstrings like {array, scalar}
+        if is_enum and type_base == 'str':
+            try_norm = _normalize_type(' or '.join(enum_list))
+            if try_norm is not None:
+                is_enum = False
+                enum_list = []
+                print("abuse of enum", func.__name__, the_type)
+                normed_type = try_norm
+        # see if we still need to normalize
+        if normed_type is None:
+            normed_type = _normalize_type(type_base)
+        # see if we have a problem
         if normed_type is None:
             raise AutowrapError("Malformed type <{}>".format(the_type))
 
@@ -551,16 +566,17 @@ def define_input_ports(docstring, func, short_description_word_count=4):
             port_is_enum = is_enum
             port_enum_list = enum_list
             # start with the easy ones
-            pdict = {'name': str(port_name),
-                     'label': str(short_description),
+            pdict = {'name': port_name,
+                     'label': short_description,
+                     'docstring': '\n'.join(the_description),
                      'optional': is_optional,
                      'signature': sig_map[port_type]}
 
 
-            try:
-                pdict['default'] = default_dict[port_name]
-            except KeyError:
-                pass
+            ## try:
+            ##     pdict['default'] = default_dict[port_name]
+            ## except KeyError:
+            ##     pass
 
             # deal with if the function as an enum attribute
             if hasattr(func, port_name):
@@ -608,8 +624,23 @@ def define_output_ports(docstring, short_description_word_count=4):
         base_type, is_optional = _type_optional(the_type)
         if is_optional:
             continue
-        normed_type = _normalize_type(base_type)
 
+        type_base, is_enum, enum_list = _enum_type(the_type)
+        normed_type = None
+        # this is to deal with malformed docstrings like {array, scalar}
+        if is_enum and type_base == 'str':
+            try_norm = _normalize_type(' or '.join(enum_list))
+            if try_norm is not None:
+                is_enum = False
+                enum_list = []
+                print("abuse of enum", docstring['Signature'], the_type)
+                normed_type = try_norm
+
+        # first try to parse
+        if normed_type is None:
+            normed_type = _normalize_type(type_base)
+
+        # deal with if we fail to parse
         if normed_type is None:
             raise AutowrapError("Malformed type <{}>".format(the_type))
 
@@ -713,8 +744,6 @@ def gen_module(input_ports, output_ports, docstring,
             if hasattr(val, 'value'):
                 print('name [{0}] has attribute value [{1}]'.format(name, val))
                 params_dict[name] = val.value
-        print(library_func.__name__)
-        print(params_dict)
         ret = library_func(**params_dict)
         if len(output_ports) == 1:
             self.set_output(output_ports[0].name, ret)
@@ -758,8 +787,6 @@ def gen_module_ufunc(input_ports, output_ports, docstring,
         args = list()
         for arg_name in arg_names:
             args.append(self.get_input(arg_name))
-
-        print(library_func.__name__)
 
         ret = library_func(*args)
         if len(output_ports) == 1:
