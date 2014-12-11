@@ -44,6 +44,8 @@ from .broker import search_keys_dict
 from .broker import search
 import numpy as np
 from metadataStore.utilities.utility import get_data_keys
+import enaml
+from enaml.qt.qt_application import QtApplication
 import logging
 logger = logging.getLogger(__name__)
 
@@ -153,6 +155,13 @@ def search_databroker(search_dict):
 #                                             unique_id_func=gen_unique_id)
 
 
+from bubblegum.xrf.model.xrf_model import XRF
+with enaml.imports():
+    from bubblegum.xrf.view.xrf_view import XrfGui
+
+xrf_view = XrfGui()
+xrf_view.xrf_model = XRF()
+
 def setup_bnl_menu():
     """
     Creates and hooks up a BNL specific menu in the main window
@@ -162,10 +171,14 @@ def setup_bnl_menu():
     menu_bar = bw.menuBar()
 
     bnl_menu = menu_bar.addMenu("BNL")
+    print('\n\n\n\n\n\nBNL Menu Added\n\n\n\n\n\n\n\n\n')
 
     def foo():
         print('menu bar clicked!')
         # query_window.show()
+        xrf_view.show()
+
+
     bnl_menu.addAction("demo", foo)
 
 
