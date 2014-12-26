@@ -193,7 +193,7 @@ def _default_vals(pyobj):
     try:
         names, _, _, d_vals = inspect.getargspec(pyobj)
         if bool(d_vals):
-            for arg_key, d_val in zip(names, d_vals):
+            for arg_key, d_val in zip(names[-len(d_vals):], d_vals):
                 default_dict[arg_key] = d_val
     except TypeError:
         logging.debug("getargspec failed on %s", pyobj.__name__)
@@ -521,7 +521,7 @@ def define_input_ports(docstring, func, short_description_word_count=4):
     """
     input_ports = []
 
-    default_dict = _default_vals(func)
+    # default_dict = _default_vals(func)
 
     for (the_name, the_type, the_description) in docstring['Parameters']:
         # skip in-place returns
