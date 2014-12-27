@@ -45,6 +45,7 @@ from vttools import scrape
 
 from numpy import interp
 from numpy.testing import assert_string_equal, assert_equal, assert_raises
+from nose.tools import assert_true
 
 #Demo enum test function
 def eat_porridge(this_sucks, temperature, wtf):
@@ -73,7 +74,7 @@ def porridge_for_the_bears(were_you_robbed):
         The question is in the title
 
     Returns
-    _______
+    -------
     p_bear_emo, m_bear_emo, b_bear_emo : string
         The emotional status of the three bears
     """
@@ -84,6 +85,11 @@ def porridge_for_the_bears(were_you_robbed):
         p_bear_emo, m_bear_emo, b_bear_emo = 'angry', 'happy', 'happy'
     return p_bear_emo, m_bear_emo, b_bear_emo
 
+
+def test_scrape():
+    res = scrape.scrape_function('porridge_for_the_bears', __name__)
+    for k in ('input_ports', 'output_ports', 'doc_string', 'f_type', 'func_name', 'module_path'):
+        assert_true(k in res)
 
 def test_obj_src():
     string_result = scrape.obj_src(interp)
@@ -262,14 +268,23 @@ def test_check_alt_types():
                     'int or scalar',
                     'scalar or sequence of scalars',
                     'MxN ndarray',
-                    'integer value')
+                    'integer value',
+                    'aardvark',
+                    'aardvark of doom',
+                    'list or aardavrk',
+                    'aardvark or integer'
+                    )
 
     targets = ('float',
     'tuple',
     'scalar',
     'seq',
     'array',
-    'int',)
+    'int',
+    None,
+    None,
+    'list',
+    'int')
 
     for ts, tar in zip(test_strings, targets):
         yield _normalize_test_helper, ts, tar,
