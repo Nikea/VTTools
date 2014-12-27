@@ -40,13 +40,13 @@ from __future__ import (absolute_import, division, print_function,
 import six
 import logging
 import sys
-
+import traceback
 import importlib
 import collections
 
-from vttools import wrap_lib
+from vttools import wrap_lib, scrape
 from vttools.vtmods.import_lists import load_config
-from vttools.wrap_lib import AutowrapError
+from vttools.scrape import AutowrapError
 
 import numpy
 
@@ -68,13 +68,17 @@ def get_modules():
         func_list = import_dict['autowrap_func']
         vtfuncs = []
         for func_dict in func_list:
+            func_dict = dict(func_dict)
             try:
-                tmp = wrap_lib.wrap_function(**func_dict)
+                spec_dict = scrape.scrape_function(func_dict['func_name'],
+                                                   func_dict['module_path'],)
+                tmp = wrap_lib.wrap_function(namespace=func_dict['namespace'], **spec_dict)
                 vtfuncs.append(tmp)
             except Exception as e:
                 print('*' * 25)
                 print('failed on {}'.format(func_dict))
                 print(e)
+                print(traceback.format_exc())
                 print('*' * 25)
 
         # autowrap classes
@@ -111,14 +115,16 @@ def get_modules():
                       if callable(atr) and type(atr) is not type]
 
     numpy_mods = []
-    for ftw in funcs_to_wrap:
+    for ftw in funcs_to_wrap[:15]:
         try:
-            tmp = wrap_lib.wrap_function(ftw, 'numpy')
+            spec_dict = scrape.scrape_function(ftw, 'numpy')
+            tmp = wrap_lib.wrap_function(**spec_dict)
             numpy_mods.append(tmp)
         except Exception as e:
             print('*' * 25)
             print('failed on {}'.format(ftw))
             print(e)
+            print(traceback.format_exc())
             print('*' * 25)
 
 

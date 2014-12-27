@@ -41,7 +41,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from skxray.testing.decorators import skip_if
-from vttools import wrap_lib
+from vttools import scrape
 
 from numpy import interp
 from numpy.testing import assert_string_equal, assert_equal, assert_raises
@@ -86,14 +86,14 @@ def porridge_for_the_bears(were_you_robbed):
 
 
 def test_obj_src():
-    string_result = wrap_lib.obj_src(interp)
+    string_result = scrape.obj_src(interp)
     initial_txt_should_be = str('def interp(x, xp, fp, left=None, right=None)')
     initial_txt_actual = string_result[0:44]
     assert_string_equal(initial_txt_actual, initial_txt_should_be)
 
 
 def _optional_test_helper(tst, tar):
-    assert_equal(wrap_lib._type_optional(tst)[1], tar)
+    assert_equal(scrape._type_optional(tst)[1], tar)
 
 
 def test_type_optional():
@@ -135,14 +135,14 @@ def test_enum_type():
     test_str4 = '{12.5, 5.3}'
     test_str5 = '{ (..., M, M), (..., M, K) } array'
     test_str6 = '{ (..., N, N), (..., K, N) } array'
-    assert_equal(wrap_lib._enum_type(test_str1)[1], True)
-    assert_equal(wrap_lib._enum_type(test_str1)[2], ['True', 'False',
+    assert_equal(scrape._enum_type(test_str1)[1], True)
+    assert_equal(scrape._enum_type(test_str1)[2], ['True', 'False',
                                                     'Maybe'])
-    assert_equal(wrap_lib._enum_type(test_str2)[1], False)
-    assert_raises(ValueError, wrap_lib._enum_type, test_str3)
-    assert_raises(ValueError, wrap_lib._enum_type, test_str4)
-    assert_equal(wrap_lib._enum_type(test_str5)[1], True)
-    assert_equal(wrap_lib._enum_type(test_str6)[1], True)
+    assert_equal(scrape._enum_type(test_str2)[1], False)
+    assert_raises(ValueError, scrape._enum_type, test_str3)
+    assert_raises(ValueError, scrape._enum_type, test_str4)
+    assert_equal(scrape._enum_type(test_str5)[1], True)
+    assert_equal(scrape._enum_type(test_str6)[1], True)
 
 
 object_type_strings = ('any', 'object')
@@ -245,7 +245,7 @@ def test_normalize_simple():
 
     # make sure we test everything!
     test_keys = set(six.iterkeys(test_dict))
-    sig_keys = set(six.iterkeys(wrap_lib.sig_map))
+    sig_keys = set(six.iterkeys(scrape.sig_map))
     assert_equal(test_keys, sig_keys)
     for k, v in six.iteritems(test_dict):
         for ts in v:
@@ -253,7 +253,7 @@ def test_normalize_simple():
 
 
 def _normalize_test_helper(tst, targ):
-    assert_equal(wrap_lib._normalize_type(tst), targ)
+    assert_equal(scrape._normalize_type(tst), targ)
 
 
 def test_check_alt_types():
@@ -283,12 +283,12 @@ def test_truncate_description():
     word_count = 6
     # Test to make sure descriptions that are smaller than the
     # specified word count pass through correctly
-    assert_equal(wrap_lib._truncate_description(original_description1,
+    assert_equal(scrape._truncate_description(original_description1,
                                                 word_count),
                  'length of three')
     # Test that function descriptions less than word_count are cropped and
     # passed through correctly
-    assert_equal(wrap_lib._truncate_description(original_description2,
+    assert_equal(scrape._truncate_description(original_description2,
                                                 word_count),
                  'This object is the original description')
 
@@ -316,14 +316,14 @@ def test_guess_type():
     target_strings = ('float', 'int', 'complex', 'str')
 
     for tst, tar in zip(test_strting, target_strings):
-        yield _func_helper, wrap_lib._guess_enum_val_type, tst, tar
+        yield _func_helper, scrape._guess_enum_val_type, tst, tar
 
 
 def test_dicts_match():
-    RE_keys = set(six.iterkeys(wrap_lib._RE_DICT))
-    sig_keys = set(six.iterkeys(wrap_lib.sig_map))
+    RE_keys = set(six.iterkeys(scrape._RE_DICT))
+    sig_keys = set(six.iterkeys(scrape.sig_map))
 
-    p_keys = set(wrap_lib.precedence_list)
+    p_keys = set(scrape.precedence_list)
 
     assert_equal(RE_keys, sig_keys)
     assert_equal(RE_keys, p_keys)
