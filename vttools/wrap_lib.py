@@ -222,16 +222,16 @@ def normalize_name_space(namespace):
             # check for the presence of sep in the namespace input parameter
             if sep in namespace:
                 # split the namespace so that it is separated by vertical bars
-                # this will only replace the first one it finds, order in _VT_SEP
-                # is precedence order.
+                # this will only replace the first one it finds, order in
+                # _VT_SEP is precedence order.
                 namespace = _VT_SEP.join(namespace.split(sep))
                 return namespace
     # fall through if there are no separators, use as-is
     return namespace
 
 
-def wrap_function(func_name, module_path, input_ports, output_ports, doc_string,
-                  f_type,
+def wrap_function(func_name, module_path, input_ports, output_ports,
+                  doc_string, f_type,
                   add_input_dict=False, namespace=None):
     """Perform the wrapping of functions into VisTrails modules
 
@@ -288,7 +288,8 @@ def wrap_function(func_name, module_path, input_ports, output_ports, doc_string,
     # actually create the VisTrail module
     generated_module = _GEN_MOD_LOOKUP[f_type](input_ports=input_ports,
                                                 output_ports=output_ports,
-                                                docstring=doc_string, module_name=func_name,
+                                                docstring=doc_string,
+                                                module_name=func_name,
                                                 module_namespace=namespace,
                                                 library_func=func,
                                                 dict_port=dict_port)
