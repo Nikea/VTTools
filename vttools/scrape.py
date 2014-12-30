@@ -43,7 +43,7 @@ import re
 from collections import OrderedDict
 from numpydoc.docscrape import FunctionDoc, ClassDoc, NumpyDocString
 import numpy
-
+import traceback
 from skxray.core import verbosedict
 
 logger = logging.getLogger(__name__)
@@ -722,3 +722,87 @@ def scrape_function(func_name, module_path):
             'f_type': f_type,
             'func_name': func_name,
             'module_path': module_path}
+
+
+def scrape_module(module_path, black_list=None,
+                  exclude_markers=None,
+                  exclude_private=True):
+    """
+    Attempt to scrape all functions from a module.
+
+    Parameters
+    ----------
+    module_path : str
+        The module to scrape
+
+    black_list : list or None, optional
+        List of functions to not attempt to scrape
+
+    exclude_markers : iterable or None
+        iterable of strings.  If any of the string are
+        contained in the function name, it is skipped
+
+    exclude_private : bool
+        If True, do not scrape private (prefixed by '_') functions
+
+
+    Returns
+    -------
+    spec_dict : dict
+        A dictionary keyed on function name of dictionaries
+        specifying the input/output types of the functions
+        suitable for passing to `wrap_lib.wrap_function`
+    """
+    # deal with defaults
+    if black_list is None:
+        black_list = []
+
+    if exclude_markers is None:
+        exclude_markers = []
+
+    black_list = set(black_list)
+
+    # grab the module from it's name
+    mod = importlib.import_module(module_path)
+
+    if hasattr(mod, '__all__'):
+        trial_list = mod.__all__
+        print("all")
+    else:
+        trial_list = dir(mod)
+
+    funcs_to_wrap = []
+    for atr_name in trial_list:
+        # if a private member, continue
+        if exclude_private and atr_name.startswith('_'):
+            continue
+        # if we know it is black listed, continue
+        if atr_name in black_list:
+            continue
+        # grab the attribute so we can introspect
+        atr = getattr(mod, atr_name)
+
+        # check the exclude markers
+        if any(k in atr_name for k in exclude_markers):
+            continue
+
+        # if the attribute is not a callable or it is of type 'type'
+        # (meaning it is a class) continue
+        if not callable(atr) or type(atr) is type:
+            continue
+
+        funcs_to_wrap.append(atr_name)
+
+    ret = dict()
+    for ftw in funcs_to_wrap:
+        try:
+            spec_dict = scrape_function(ftw, module_path)
+            ret[ftw] = spec_dict
+        except Exception as e:
+            print('*' * 25)
+            print('failed on {}'.format(ftw))
+            print(e)
+            print(traceback.format_exc())
+            print('*' * 25)
+
+    return ret
