@@ -72,7 +72,8 @@ def get_modules():
             try:
                 spec_dict = scrape.scrape_function(func_dict['func_name'],
                                                    func_dict['module_path'],)
-                tmp = wrap_lib.wrap_function(namespace=func_dict['namespace'], **spec_dict)
+                tmp = wrap_lib.wrap_function(namespace=func_dict['namespace'],
+                                             **spec_dict)
                 vtfuncs.append(tmp)
             except Exception as e:
                 print('*' * 25)
@@ -100,17 +101,20 @@ def get_modules():
 
     vtmods = [vtmod for mod in pymods for vtmod in mod.vistrails_modules()]
 
-    np_black_list = ['who', 'mafromtxt', 'ndfromtxt', 'source', 'info', 'add_newdoc_ufunc',
-                     'frombuffer', 'fromiter', 'frompyfunc', 'getbuffer', 'newbuffer', 'pkgload',
-                     'recfromcsv', 'recfromtxt', 'savez', 'savez_compressed', 'set_printoptions',
-                     'seterrcall', 'tensordot', 'genfromtxt', 'ppmt', 'pv', 'rate', 'nper', 'fv',
-                     'ipmt'
-                     ]
-
+    np_black_list = ['who', 'mafromtxt', 'ndfromtxt', 'source',
+                     'info', 'add_newdoc_ufunc', 'frombuffer',
+                     'fromiter', 'frompyfunc', 'getbuffer',
+                     'newbuffer', 'pkgload', 'recfromcsv',
+                     'recfromtxt', 'savez', 'savez_compressed',
+                     'set_printoptions', 'seterrcall', 'tensordot',
+                     'genfromtxt', 'ppmt', 'pv', 'rate', 'nper', 'fv',
+                     'ipmt', ]
 
     funcs_to_wrap = [atr_name for atr_name, atr in
-                     ((atr_name, getattr(numpy, atr_name)) for atr_name in dir(numpy)
-                      if not (atr_name.startswith('_') or 'busday' in atr_name or
+                     ((atr_name, getattr(numpy, atr_name))
+                      for atr_name in dir(numpy)
+                      if not (atr_name.startswith('_') or
+                              'busday' in atr_name or
                               atr_name in np_black_list))
                       if callable(atr) and type(atr) is not type]
 
@@ -127,8 +131,7 @@ def get_modules():
             print(traceback.format_exc())
             print('*' * 25)
 
-
-    all_mods = vtmods + vtfuncs  + numpy_mods  # + vtclasses
+    all_mods = vtmods + vtfuncs + numpy_mods  # + vtclasses
     if len(all_mods) != len(set(all_mods)):
         raise ValueError('Some modules have been imported multiple times.\n'
                          'Full list: {0}'
