@@ -48,6 +48,8 @@ from skxray.core import verbosedict
 
 logger = logging.getLogger(__name__)
 
+vt_reserved = ('domain', 'window')
+
 
 class AutowrapError(Exception):
     '''Exception to flag an autowrapping error
@@ -562,6 +564,8 @@ def define_input_ports(docstring, func, short_description_word_count=4):
             port_is_enum = is_enum
             port_enum_list = enum_list
             # start with the easy ones
+            if port_name in vt_reserved:
+                port_name = '_' + port_name
             pdict = {'name': port_name,
                      'label': short_description,
                      'docstring': '\n'.join(the_description),

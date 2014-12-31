@@ -39,6 +39,7 @@ import six
 import importlib
 import time
 import logging
+from .scrape import vt_reserved
 from vistrails.core.modules.vistrails_module import (Module, ModuleSettings,
                                                      ModuleError)
 
@@ -103,13 +104,21 @@ def gen_module(input_ports, output_ports, docstring,
                 # obtain the parameter from the passed in dict
                 params_dict[opt] = dict_from_port[opt]
             if self.has_input(opt):
-                params_dict[opt] = self.get_input(opt)
+                if opt in vt_reserved:
+                    p_name = '_' + opt
+                else:
+                    p_name = opt
+                params_dict[opt] = self.get_input(p_name)
 
         for mand in mandatory:
+            if mand in vt_reserved:
+                p_name = '_' + mand
+            else:
+                p_name = mand
             if mand in dict_from_port:
                 params_dict[mand] = dict_from_port[mand]
             try:
-                params_dict[mand] = self.get_input(mand)
+                params_dict[mand] = self.get_input(p_name)
             except ModuleError as me:
                 if mand in params_dict:
                     # pass on this exception, as the dictionary on dict_port
