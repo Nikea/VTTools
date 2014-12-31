@@ -110,7 +110,6 @@ def get_modules():
                    'vttools.to_wrap.fitting',
                    ]
 
-    fail_count = 0
     for mod_name in mod_targets:
         print('=' * 25)
         print('starting module {}'.format(mod_name))
@@ -123,14 +122,9 @@ def get_modules():
                 tmp = wrap_lib.wrap_function(**spec_dict)
                 vtfuncs.append(tmp)
             except Exception as e:
-                fail_count += 1
-                print('+' * 25)
-                print('failed wrapping on {}.{}'.format(mod_name, ftw))
-                print(e)
-                # print(traceback.format_exc())
-                print('+' * 25)
+                logger.warn("%s failed wrapping on %s.%s",
+                        e, mod_name, ftw)
 
-    print("TOTAL FAILED TO WRAP: ", fail_count)
     all_mods = vtmods + vtfuncs
     if len(all_mods) != len(set(all_mods)):
         raise ValueError('Some modules have been imported multiple times.\n'

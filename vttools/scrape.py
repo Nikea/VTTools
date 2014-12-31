@@ -539,10 +539,8 @@ def define_input_ports(docstring, func, short_description_word_count=4):
             if try_norm is not None:
                 is_enum = False
                 enum_list = []
-                print('-' * 25)
-                print("abuse of enum  {} |{} <{}>|".format(
-                    func.__name__, the_name, the_type))
-                print('-' * 25)
+                logger.warning("abuse of enum  %s |%s <%s>|",
+                    func.__name__, the_name, the_type)
                 normed_type = try_norm
         # see if we still need to normalize
         if normed_type is None:
@@ -576,12 +574,6 @@ def define_input_ports(docstring, func, short_description_word_count=4):
                      'docstring': '\n'.join(the_description),
                      'optional': is_optional,
                      'signature': sig_map[port_type]}
-
-
-            ## try:
-            ##     pdict['default'] = default_dict[port_name]
-            ## except KeyError:
-            ##     pass
 
             # deal with if the function as an enum attribute
             if hasattr(func, port_name):
@@ -638,7 +630,8 @@ def define_output_ports(docstring, short_description_word_count=4):
             if try_norm is not None:
                 is_enum = False
                 enum_list = []
-                print("abuse of enum", docstring['Signature'], the_type)
+                logger.warning("abuse of enum %s | <%s>|",
+                    docstring['Signature'], the_type)
                 normed_type = try_norm
 
         # first try to parse
@@ -807,10 +800,7 @@ def scrape_module(module_path, black_list=None,
             spec_dict = scrape_function(ftw, module_path)
             ret[ftw] = spec_dict
         except Exception as e:
-            print('*' * 25)
-            print('failed scraping on {}.{}'.format(module_path, ftw))
-            print(e)
-            # print(traceback.format_exc())
-            print('*' * 25)
+            logger.warn("%s failed scraping on %s.%s",
+                        e, module_path, ftw)
 
     return ret
