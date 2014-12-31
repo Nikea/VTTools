@@ -426,7 +426,7 @@ def _normalize_type(the_type):
         The normalized type
     """
     # get rid of all leading and trailing junk
-    the_type = the_type.strip(' .!?-_\t')
+    the_type = the_type.strip(' .!?-_\t`').rstrip(' .!?-_\t`')
     # if 'or'
     if _OR_REGEX.search(the_type):
         left, right = the_type.split('or', 1)
