@@ -269,7 +269,7 @@ sig_map = verbosedict({
     'scalar': 'basic:Float',
     'float': 'basic:Float',
     'int': 'basic:Integer',
-    'complex': 'basic:Complex',
+    'complex': 'basic:Variant',
     'dict': 'basic:Dictionary',
     'str': 'basic:String',
     'callable': 'basic:Variant'
