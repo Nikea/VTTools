@@ -125,7 +125,7 @@ def get_modules():
             except Exception as e:
                 fail_count += 1
                 print('+' * 25)
-                print('failed wrapping on {}.{}'.format(module_path, ftw))
+                print('failed wrapping on {}.{}'.format(mod_name, ftw))
                 print(e)
                 # print(traceback.format_exc())
                 print('+' * 25)

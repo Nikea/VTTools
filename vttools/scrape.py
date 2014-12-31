@@ -539,14 +539,18 @@ def define_input_ports(docstring, func, short_description_word_count=4):
             if try_norm is not None:
                 is_enum = False
                 enum_list = []
-                print("abuse of enum", func.__name__, the_type)
+                print('-' * 25)
+                print("abuse of enum  {} |{} <{}>|".format(
+                    func.__name__, the_name, the_type))
+                print('-' * 25)
                 normed_type = try_norm
         # see if we still need to normalize
         if normed_type is None:
             normed_type = _normalize_type(type_base)
         # see if we have a problem
         if normed_type is None:
-            raise AutowrapError("Malformed type <{}>".format(the_type))
+            raise AutowrapError("Malformed input type |{}: <{}>|".format(
+                the_name, the_type))
 
         # Trim parameter descriptions for incorporation into vistrails
         short_description = _truncate_description(the_description,
@@ -643,7 +647,8 @@ def define_output_ports(docstring, short_description_word_count=4):
 
         # deal with if we fail to parse
         if normed_type is None:
-            raise AutowrapError("Malformed type <{}>".format(the_type))
+            raise AutowrapError("Malformed output type |{}: <{}>|".format(
+                the_name, the_type))
 
         for port_name in (_.strip() for _ in the_name.split(',')):
             if not port_name:
@@ -791,7 +796,7 @@ def scrape_module(module_path, black_list=None,
 
         # if the attribute is not a callable or it is of type 'type'
         # (meaning it is a class) continue
-        if not callable(atr) or type(atr) in (type, abc.ABCMeta) :
+        if not callable(atr) or type(atr) in (type, abc.ABCMeta):
             continue
 
         funcs_to_wrap.append(atr_name)
