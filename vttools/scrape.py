@@ -770,7 +770,6 @@ def scrape_module(module_path, black_list=None,
 
     if hasattr(mod, '__all__'):
         trial_list = mod.__all__
-        print("all")
     else:
         trial_list = dir(mod)
 
@@ -803,9 +802,9 @@ def scrape_module(module_path, black_list=None,
             ret[ftw] = spec_dict
         except Exception as e:
             print('*' * 25)
-            print('failed on {}'.format(ftw))
+            print('failed scraping on {}.{}'.format(module_path, ftw))
             print(e)
-            print(traceback.format_exc())
+            # print(traceback.format_exc())
             print('*' * 25)
 
     return ret

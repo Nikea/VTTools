@@ -133,9 +133,7 @@ def gen_module(input_ports, output_ports, docstring,
         # check for the presence of a 'value' attribute on the incoming
         # port values. This indicates that this is a NSLS2 port type
         for name, val in six.iteritems(params_dict):
-            print('name [{0}] has attribute value [{1}]'.format(name, val))
             if hasattr(val, 'value'):
-                print('name [{0}] has attribute value [{1}]'.format(name, val))
                 params_dict[name] = val.value
         ret = library_func(**params_dict)
         if len(output_ports) == 1:
@@ -220,7 +218,6 @@ def normalize_name_space(namespace):
         The namespace formatted as VT expects (with '|' as separator)
 
     """
-    print(namespace)
     if _VT_SEP in namespace:
         # do nothing, namespace is correctly formatted, yay!
         # we let other possible separators pass as-is
