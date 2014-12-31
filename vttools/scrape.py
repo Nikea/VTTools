@@ -45,6 +45,7 @@ from numpydoc.docscrape import FunctionDoc, ClassDoc, NumpyDocString
 import numpy
 import traceback
 from skxray.core import verbosedict
+import abc
 
 logger = logging.getLogger(__name__)
 
@@ -790,7 +791,7 @@ def scrape_module(module_path, black_list=None,
 
         # if the attribute is not a callable or it is of type 'type'
         # (meaning it is a class) continue
-        if not callable(atr) or type(atr) is type:
+        if not callable(atr) or type(atr) in (type, abc.ABCMeta) :
             continue
 
         funcs_to_wrap.append(atr_name)
