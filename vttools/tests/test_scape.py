@@ -187,7 +187,7 @@ array_type_strings = ('array', 'array-like', 'array_like', 'array like',
                       'array_like (1-D)', 'array_like (1D or 2D)',
                       'array_like (cast to booleans)',
                       'int or [int, int] or array-like or [array, array]',
-                      'int (cast to 0 or 1)', 'array_likes')
+                      'array_likes')
 matrix_type_strings = (tuple('{}matrix'.format(p)
                              for p in ('np.', 'numpy.', '')) +
                        ('(N, M) matrix', ))
@@ -211,6 +211,7 @@ float_type_strings = (tuple('{}float{}'.format(prefix, n)
                                                      (16, 32, 64, 128)))
                             + ('double', 'single', 'float', 'float (only if)'))
 
+# known fails 'int (cast to 0 or 1)',
 int_type_strings = (('integer', 'InTeGeR',) +
                             tuple('{}{}int{}'.format(prefix, u, n)
                                   for prefix, u, n
