@@ -172,7 +172,7 @@ def docstring_func(pyobj):
         return NumpyDocString(pyobj.__doc__)
 
 
-def _default_vals(pyobj):
+def _extract_default_vals(pyobj):
     """
     This is a helper function that scrapes default parameter values for
     incorporation into the automatic function wrapper for incorporating
@@ -186,19 +186,19 @@ def _default_vals(pyobj):
 
     Returns
     -------
-    default_dict : dict
+    kwarg_defaults : dict
         Dictionary containing PARAMETER : DEFAULT_VALUE pairs.
     """
-    default_dict = {}
+
     try:
         names, _, _, d_vals = inspect.getargspec(pyobj)
         if bool(d_vals):
-            for arg_key, d_val in zip(names[-len(d_vals):], d_vals):
-                default_dict[arg_key] = d_val
-    except TypeError:
-        logging.debug("getargspec failed on %s", pyobj.__name__)
+            return dict(zip(names[-len(d_vals):], d_vals))
 
-    return default_dict
+    except TypeError:
+        logging.debug("getargspec failed on %s", pyobj)
+
+    return dict()
 
 
 def _type_optional(type_str):
@@ -520,7 +520,7 @@ def define_input_ports(docstring, func, short_description_word_count=4):
     """
     input_ports = []
 
-    # default_dict = _default_vals(func)
+    kwarg_defaults = _extract_default_vals(func)
 
     for (the_name, the_type, the_description) in docstring['Parameters']:
         # skip in-place returns
@@ -566,14 +566,28 @@ def define_input_ports(docstring, func, short_description_word_count=4):
             port_type = normed_type
             port_is_enum = is_enum
             port_enum_list = enum_list
-            # start with the easy ones
-            if port_name in vt_reserved:
-                port_name = '_' + port_name
-            pdict = {'name': port_name,
-                     'label': short_description,
+
+            pdict = {'label': short_description,
                      'docstring': '\n'.join(the_description),
                      'optional': is_optional,
                      'signature': sig_map[port_type]}
+
+            if port_name in kwarg_defaults:
+                tmp_v = kwarg_defaults[port_name]
+                if pdict['signature'] in ['basic:List',
+                                          'basic:Variant',
+                                          'basic:Dictionary']:
+                    logger.warning(("Trying to log default for non-constant"
+                                   "%s: |%s <%s>| (%s)"),
+                                   func.__name__, the_name, the_type,
+                                   tmp_v)
+                else:
+                    pdict['default'] = tmp_v
+
+            # start with the easy ones
+            if port_name in vt_reserved:
+                port_name = '_' + port_name
+            pdict['name'] = port_name
 
             # deal with if the function as an enum attribute
             if hasattr(func, port_name):

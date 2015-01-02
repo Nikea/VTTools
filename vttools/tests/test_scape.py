@@ -87,6 +87,24 @@ def porridge_for_the_bears(were_you_robbed):
     return p_bear_emo, m_bear_emo, b_bear_emo
 
 
+def has_defaults(a=None, b=1, c='str', d=()):
+    """
+    A silly no-op function
+
+    Parameters
+    ----------
+    a : object, optional
+        defaults to None
+    b : int, optional
+        defaults to 1
+    c : str, optional
+        Defaults to 'str'
+    d : tuple, optional
+        Defaults to ()
+    """
+    pass
+
+
 def test_scrape():
     res = scrape.scrape_function('porridge_for_the_bears', __name__)
     for k in ('input_ports', 'output_ports', 'doc_string',
@@ -353,3 +371,17 @@ def test_dicts_match():
 
     assert_equal(RE_keys, sig_keys)
     assert_equal(RE_keys, p_keys)
+
+
+def _default_tester_helper(func, expect_dict):
+    res = scrape._extract_default_vals(func)
+    assert_equal(res, expect_dict)
+
+
+def test_default():
+    test_data = ((eat_porridge, {}),
+                 (has_defaults, {'a': None, 'b': 1,
+                                 'c': 'str', 'd': ()}))
+
+    for func, res in test_data:
+        yield _default_tester_helper, func, res
