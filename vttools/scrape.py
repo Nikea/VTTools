@@ -41,7 +41,7 @@ import importlib
 import logging
 import re
 from collections import OrderedDict
-from numpydoc.docscrape import FunctionDoc, ClassDoc, NumpyDocString
+from numpydoc.docscrape import FunctionDoc, ClassDoc
 import numpy
 
 from skxray.core import verbosedict
@@ -166,10 +166,7 @@ def docstring_func(pyobj):
         Taken from:
             https://github.com/numpy/numpydoc/blob/master/numpydoc/docscrape.py#L94
     """
-    try:
-        return FunctionDoc(pyobj)
-    except TypeError:
-        return NumpyDocString(pyobj.__doc__)
+    return FunctionDoc(pyobj)
 
 
 def _extract_default_vals(pyobj):
