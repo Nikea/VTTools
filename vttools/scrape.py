@@ -43,7 +43,7 @@ import re
 from collections import OrderedDict
 from numpydoc.docscrape import FunctionDoc, ClassDoc, NumpyDocString
 import numpy
-import traceback
+
 from skxray.core import verbosedict
 import abc
 
@@ -241,22 +241,22 @@ _OPTIONAL_RE = re.compile('(.*?),? *(\(?optional\)?)')
 
 _RE_DICT = {
     "object": re.compile('^(?i)(any|object)$'),
-    "array": re.compile('^(?i).*(((np|numpy)\.)?(nd)?array(_|-| |s)?(like)?)(, shape \(([a-zA-Z],? *)+\))?$'),  # noqa,
+    "array": re.compile('^(?i).*(((np|numpy)\.)?(nd)?array(_|-| |s)?(like)?)'),  # noqa,
     "matrix": re.compile('^(?i)(\((([A-Z0-9.]+,? *){2} ?)\))? *(((np|numpy)\.)?matrix(_|-| )?(like)?)$'),  # noqa,
     # note these three do not match end so 'list of ... ' matches
     "list": re.compile('^(?i)list(-|_| )?(like)?'),
     "tuple": re.compile('(?i)tuple(-|_| )?(like)?'),
     "seq": re.compile('(?i)sequence(-|_| )?(like)?'),
-    "dtype": re.compile('^(?i)((np|numpy)\.)?d(ata)?[- _]?type[-_ ]?(like|code)?$'),  # noqa
+    "dtype": re.compile('^(?i)((np|numpy)[. ])?d(ata)?[- _]?type[-_ ]?(like|code|specifier)?'),  # noqa
     "bool": re.compile('^(?i)bool(ean)?$'),
-    "file": re.compile('^(?i)file(name)?( |handle|object)*$'),
-    "scalar": re.compile('^(?i)(scalar|number)$'),
+    "file": re.compile('^(?i)file(name)?[ -_]*(like|handle|object)*$'),
+    "scalar": re.compile('^(?i)(scalar|number)'),
     "float": re.compile('^(?i)(((np|numpy)\.)?float(16|32|64|128)?|double|single)'),  # noqa,
     "int": re.compile('^(?i)((np|numpy)\.)?u?int(eger)?(8|16|32|64)?( value|s)?$'),      # noqa
     "complex": re.compile('^(?i)complex$'),
     "dict": re.compile('^(?i)dict(ionary)?$'),
-    "str": re.compile('^(?i)str(ing)?$'),
-    'callable': re.compile('^(?i)(func(tion)?|callable)$'),
+    "str": re.compile('^(?i)str(ing)?([-]?like)?'),
+    'callable': re.compile('^(?i)(func(tion)?|callable)'),
 }
 
 sig_map = verbosedict({

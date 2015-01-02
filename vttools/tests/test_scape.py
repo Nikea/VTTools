@@ -160,7 +160,9 @@ array_type_strings = ('array', 'array-like', 'array_like', 'array like',
                       '(..., M, N) array_like', '(N, M, P) ndarray',
                       '(M,) array_like', '(M) array_like', 'MxN array',
                       'array_like, shape (M, N)', 'ndarray, float', 'ndarrays',
-                      '2D array', '2-D array')
+                      '2D array', '2-D array',
+                      'array_like (1-D)', 'array_like (1D or 2D)', 'array_like (cast to booleans)'
+                      'int (cast to 0 or 1)', 'array_likes')
 matrix_type_strings = (tuple('{}matrix'.format(p)
                              for p in ('np.', 'numpy.', '')) +
                        ('(N, M) matrix', ))
@@ -171,7 +173,8 @@ list_type_strings = ('list', 'List', 'list-like', 'list_like',
 tuple_type_strings = ('tuple'),
 seq_type_strings = ('sequence', '1D sequence', '1-D sequence')
 dtype_type_strings = ('dtype', 'dtype like', 'np.dtype', 'numpy.dtype',
-                      'data-type', 'data type', 'data type code')
+                      'data-type', 'data type', 'data type code', 'dtype specifier',
+                      'numpy dtype')
 bool_type_strings = ('bool', 'boolean')
 file_type_strings = ('file', 'filename', 'file handle',
                      'file object', 'file handle object')
@@ -191,8 +194,9 @@ int_type_strings = (('integer', 'InTeGeR', ) +
 
 complex_type_strings = ('complex', )
 dict_type_strings = ('dict', 'dictionary')
-str_type_strings = ('str', 'string')
-callable_type_strings = ('function', 'func', 'callable')
+str_type_strings = ('str', 'string', 'str-like')
+callable_type_strings = ('function', 'func', 'callable',
+                         'callable f(x,*args)', 'function(x) -> f')
 
 
 def test_normalize_simple():
