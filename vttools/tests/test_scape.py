@@ -40,10 +40,9 @@ import six
 import logging
 logger = logging.getLogger(__name__)
 
-from skxray.testing.decorators import skip_if
 from vttools import scrape
 
-from numpy import interp
+
 from numpy.testing import assert_string_equal, assert_equal, assert_raises
 from nose.tools import assert_true
 
@@ -92,9 +91,9 @@ def test_scrape():
         assert_true(k in res)
 
 def test_obj_src():
-    string_result = scrape.obj_src(interp)
-    initial_txt_should_be = str('def interp(x, xp, fp, left=None, right=None)')
-    initial_txt_actual = string_result[0:44]
+    string_result = scrape.obj_src(eat_porridge)
+    initial_txt_should_be = str('def eat_porridge(this_sucks, temperature, wtf):')
+    initial_txt_actual = str(string_result.split('\n')[0])
     assert_string_equal(initial_txt_actual, initial_txt_should_be)
 
 
