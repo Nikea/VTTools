@@ -59,7 +59,7 @@ _black_list = ['who', 'mafromtxt', 'ndfromtxt', 'source',
                  'recfromtxt', 'savez', 'savez_compressed',
                  'set_printoptions', 'seterrcall', 'tensordot',
                  'genfromtxt', 'ppmt', 'pv', 'rate', 'nper', 'fv',
-                 'ipmt',
+                 'ipmt', 'issubclass_', 'pmt', 'formatter',
                  # skxray
                  'peak_refinement']
 
