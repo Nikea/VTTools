@@ -87,7 +87,8 @@ def porridge_for_the_bears(were_you_robbed):
     return p_bear_emo, m_bear_emo, b_bear_emo
 
 
-def has_defaults(a=None, b=1, c='str', d=()):
+def has_defaults(a=None, b=1, c='str', d=(),
+                 e=None):
     """
     A silly no-op function
 
@@ -101,8 +102,11 @@ def has_defaults(a=None, b=1, c='str', d=()):
         Defaults to 'str'
     d : tuple, optional
         Defaults to ()
+    e : {'a', 'b', 'c'}
+        An enum
     """
     pass
+has_defaults.e = ['a', 'b', 'c']
 
 
 def test_scrape():
@@ -110,6 +114,11 @@ def test_scrape():
     for k in ('input_ports', 'output_ports', 'doc_string',
               'f_type', 'func_name', 'module_path'):
         assert_true(k in res)
+
+
+def test_enum():
+    res = scrape.scrape_function('has_defaults', __name__)
+    assert_equal(res['input_ports'][-1]['values'], has_defaults.e)
 
 
 def test_obj_src():
@@ -382,7 +391,8 @@ def _default_tester_helper(func, expect_dict):
 def test_default():
     test_data = ((eat_porridge, {}),
                  (has_defaults, {'a': None, 'b': 1,
-                                 'c': 'str', 'd': ()}))
+                                 'c': 'str', 'd': (),
+                                 'e': None}))
 
     for func, res in test_data:
         yield _default_tester_helper, func, res

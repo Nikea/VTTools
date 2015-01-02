@@ -594,7 +594,7 @@ def define_input_ports(docstring, func, short_description_word_count=4):
                 if port_is_enum:
                     # if we already think this is an enum, make sure they
                     # match
-                    if not _enum_type(enum_list, f_enums):
+                    if not _enums_equal(enum_list, f_enums):
                         format_args = (the_name, enum_list, len(enum_list),
                                        f_enums, len(f_enums))
                         raise ValueError(_enum_error.format(*format_args))
