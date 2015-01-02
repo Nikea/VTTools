@@ -102,7 +102,7 @@ def docstring_class(pyobj):
         If pyobj is a class
 
         A dictionary of the formatted numpy docstring can be
-            accessed by :code:`return_val._parsed_data`
+            accessed by :code:`return_val[]`
             Keys:
                 'Signature': '',
                 'Summary': [''],
@@ -145,7 +145,7 @@ def docstring_func(pyobj):
         If pyobj is a function or class method
 
         A dictionary of the formatted numpy docstring can be
-            accessed by :code:`return_val._parsed_data`
+            accessed by :code:`return_val[]`
             Keys:
                 'Signature': '',
                 'Summary': [''],
