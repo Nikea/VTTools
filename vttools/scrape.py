@@ -577,12 +577,14 @@ def define_input_ports(docstring, func, short_description_word_count=4):
                 if pdict['signature'] in ['basic:List',
                                           'basic:Variant',
                                           'basic:Dictionary']:
-                    logger.warning(("Trying to log default for non-constant"
+                    logger.info(("Trying to set default value for non-constant"
+                                 "type "
                                    "%s: |%s <%s>| (%s)"),
                                    func.__name__, the_name, the_type,
                                    tmp_v)
                 else:
                     pdict['default'] = tmp_v
+                    pdict['optional'] = True
 
             # start with the easy ones
             if port_name in vt_reserved:
