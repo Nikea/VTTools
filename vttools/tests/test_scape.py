@@ -46,7 +46,8 @@ from vttools import scrape
 from numpy.testing import assert_string_equal, assert_equal, assert_raises
 from nose.tools import assert_true
 
-#Demo enum test function
+
+# Demo enum test function
 def eat_porridge(this_sucks, temperature, wtf):
     """
     Should we eat the porridge?
@@ -59,9 +60,10 @@ def eat_porridge(this_sucks, temperature, wtf):
     output : bool
         If we should eat the porridge
     """
-    if temperature  not in {'too hot', 'too cold', 'just right'}:
+    if temperature not in {'too hot', 'too cold', 'just right'}:
         raise ValueError("That isn't porridge!")
     return temperature == 'just right'
+
 
 def porridge_for_the_bears(were_you_robbed):
     """
@@ -77,7 +79,7 @@ def porridge_for_the_bears(were_you_robbed):
     p_bear_emo, m_bear_emo, b_bear_emo : string
         The emotional status of the three bears
     """
-    if were_you_robbed == True:
+    if were_you_robbed:
         p_bear_emo = 'angry'
         m_bear_emo, b_bear_emo = 'sad', 'sad'
     else:
@@ -87,12 +89,15 @@ def porridge_for_the_bears(were_you_robbed):
 
 def test_scrape():
     res = scrape.scrape_function('porridge_for_the_bears', __name__)
-    for k in ('input_ports', 'output_ports', 'doc_string', 'f_type', 'func_name', 'module_path'):
+    for k in ('input_ports', 'output_ports', 'doc_string',
+              'f_type', 'func_name', 'module_path'):
         assert_true(k in res)
+
 
 def test_obj_src():
     string_result = scrape.obj_src(eat_porridge)
-    initial_txt_should_be = str('def eat_porridge(this_sucks, temperature, wtf):')
+    initial_txt_should_be = str(
+        'def eat_porridge(this_sucks, temperature, wtf):')
     initial_txt_actual = str(string_result.split('\n')[0])
     assert_string_equal(initial_txt_actual, initial_txt_should_be)
 
@@ -161,7 +166,9 @@ array_type_strings = ('array', 'array-like', 'array_like', 'array like',
                       '(M,) array_like', '(M) array_like', 'MxN array',
                       'array_like, shape (M, N)', 'ndarray, float', 'ndarrays',
                       '2D array', '2-D array',
-                      'array_like (1-D)', 'array_like (1D or 2D)', 'array_like (cast to booleans)'
+                      'array_like (1-D)', 'array_like (1D or 2D)',
+                      'array_like (cast to booleans)',
+                      'int or [int, int] or array-like or [array, array]',
                       'int (cast to 0 or 1)', 'array_likes')
 matrix_type_strings = (tuple('{}matrix'.format(p)
                              for p in ('np.', 'numpy.', '')) +
@@ -173,7 +180,8 @@ list_type_strings = ('list', 'List', 'list-like', 'list_like',
 tuple_type_strings = ('tuple'),
 seq_type_strings = ('sequence', '1D sequence', '1-D sequence')
 dtype_type_strings = ('dtype', 'dtype like', 'np.dtype', 'numpy.dtype',
-                      'data-type', 'data type', 'data type code', 'dtype specifier',
+                      'data-type', 'data type', 'data type code',
+                      'dtype specifier',
                       'numpy dtype')
 bool_type_strings = ('bool', 'boolean')
 file_type_strings = ('file', 'filename', 'file handle',
@@ -185,7 +193,7 @@ float_type_strings = (tuple('{}float{}'.format(prefix, n)
                                                      (16, 32, 64, 128)))
                             + ('double', 'single', 'float', 'float (only if)'))
 
-int_type_strings = (('integer', 'InTeGeR', ) +
+int_type_strings = (('integer', 'InTeGeR',) +
                             tuple('{}{}int{}'.format(prefix, u, n)
                                   for prefix, u, n
                                   in product(('np.', 'numpy.', ''),
