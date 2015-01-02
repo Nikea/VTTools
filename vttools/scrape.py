@@ -264,7 +264,7 @@ sig_map = verbosedict({
     'array': 'basic:Variant',
     'matrix': 'basic:Variant',
     'list': 'basic:List',
-    'tuple': 'basic:Tuple',
+    'tuple': 'basic:List',
     'seq': 'basic:List',
     'dtype': 'basic:String',
     'bool': 'basic:Boolean',
