@@ -46,67 +46,7 @@ from vttools import scrape
 from numpy.testing import assert_string_equal, assert_equal, assert_raises
 from nose.tools import assert_true
 
-
-# Demo enum test function
-def eat_porridge(this_sucks, temperature, wtf):
-    """
-    Should we eat the porridge?
-
-    Parameters
-    ----------
-    temperature, porridge : {'too hot', 'too cold', 'just right'}
-        The temperature of the porridge
-
-    output : bool
-        If we should eat the porridge
-    """
-    if temperature not in {'too hot', 'too cold', 'just right'}:
-        raise ValueError("That isn't porridge!")
-    return temperature == 'just right'
-
-
-def porridge_for_the_bears(were_you_robbed):
-    """
-    Did Goldie Locks break in and rob you?
-
-    Parameters
-    ----------
-    were_you_robbed : bool
-        The question is in the title
-
-    Returns
-    -------
-    p_bear_emo, m_bear_emo, b_bear_emo : string
-        The emotional status of the three bears
-    """
-    if were_you_robbed:
-        p_bear_emo = 'angry'
-        m_bear_emo, b_bear_emo = 'sad', 'sad'
-    else:
-        p_bear_emo, m_bear_emo, b_bear_emo = 'angry', 'happy', 'happy'
-    return p_bear_emo, m_bear_emo, b_bear_emo
-
-
-def has_defaults(a=None, b=1, c='str', d=(),
-                 e=None):
-    """
-    A silly no-op function
-
-    Parameters
-    ----------
-    a : object, optional
-        defaults to None
-    b : int, optional
-        defaults to 1
-    c : str, optional
-        Defaults to 'str'
-    d : tuple, optional
-        Defaults to ()
-    e : {'a', 'b', 'c'}
-        An enum
-    """
-    pass
-has_defaults.e = ['a', 'b', 'c']
+from scrape_test_source import eat_porridge, porridge_for_the_bears, has_defaults
 
 
 def test_scrape():
@@ -139,6 +79,11 @@ def test_type_optional():
 
     for tst, tar in zip(test_string, targets):
         yield _optional_test_helper, tst, tar
+
+
+def test_stacked_output_port():
+    res = scrape.scrape_function('porridge_for_the_bears', __name__)
+    assert_equal(3, len(res['output_ports']))
 
 
 def test_enum_type():
@@ -396,3 +341,26 @@ def test_default():
 
     for func, res in test_data:
         yield _default_tester_helper, func, res
+
+
+def test_module_scrape():
+
+    tests = (({}, {'black_list': ['has_defaults']}, ['has_defaults']),
+             ({}, {'exclude_markers': ['porridge']},
+              ['eat_porridge', 'porridge_for_the_bears']),
+             ({'exclude_private': False}, {}, ['_private']))
+
+    for pre, post, tst_lst in tests:
+        yield _mod_scrape_test_helper, 'scrape_test_source', pre, post, tst_lst
+
+
+def _mod_scrape_test_helper(mod_name, kwargs_with, kwargs_without,
+                            test_members):
+    res = scrape.scrape_module(mod_name, **kwargs_with)
+
+    for n in test_members:
+        assert_true(n in res)
+
+    res = scrape.scrape_module(mod_name, **kwargs_without)
+    for n in test_members:
+        assert_true(n not in res)
