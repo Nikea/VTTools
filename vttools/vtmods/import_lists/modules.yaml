@@ -49,9 +49,20 @@ autowrap_func:
 - func_name : pixel_to_phi
   module_path: skxray.core
   namespace: core
+# IO
+- func_name: save_output
+  module_path: skxray.io.save_powder_output
+  namespace: io
+#- func_name: gsas_writer
+#  module_path: skxray.io.save_powder_output
+#  namespace: io
+#- func_name: gsas_reader
+#  module_path: skxray.io.gsas_file_reader
+#  namespace: io
 - func_name: read_binary
   module_path: skxray.io.binary
   namespace: io
+# NUMPY
 - func_name: convolve
   module_path: numpy
   namespace: numpy
@@ -74,6 +85,10 @@ autowrap_func:
 - func_name: estimate_d_blind
   module_path: skxray.calibration
   namespace: calibration
+#- func_name: find_ring_center_acorr_1D
+#  module_path: skxray.image
+#  namespace: image
+
 
 
 #- {func_name: emission_line_search, module_path: skxray.constants,  namespace: core, add_input_dict: true}
