@@ -4,8 +4,8 @@ source=vttools
 omit =
     */python?.?/*
     */site-packages/nose/*
-    /vttools/tests/*
-    /vttools/testing/*
-    
+    */tests/*
+    */testing/*
+
 exclude_lines =
     def set_default

@@ -39,52 +39,93 @@ from __future__ import (absolute_import, division, print_function,
                         )
 import six
 import logging
-import sys
-import yaml
+
+import traceback
 import importlib
 import collections
-import os
-from vttools import wrap_lib
+
+from vttools import wrap_lib, scrape
 from vttools.vtmods.import_lists import load_config
-from vttools.wrap_lib import AutowrapError
+
 logger = logging.getLogger(__name__)
 
 # get modules to import
 import_dict = load_config()
 
+_black_list = ['who', 'mafromtxt', 'ndfromtxt', 'source',
+                 'info', 'add_newdoc_ufunc', 'frombuffer',
+                 'fromiter', 'frompyfunc', 'getbuffer',
+                 'newbuffer', 'pkgload', 'recfromcsv',
+                 'recfromtxt', 'savez', 'savez_compressed',
+                 'set_printoptions', 'seterrcall', 'tensordot',
+                 'genfromtxt', 'ppmt', 'pv', 'rate', 'nper', 'fv',
+                 'ipmt', 'issubclass_', 'pmt', 'formatter',
+                 # skxray
+                 'peak_refinement']
+
+_exclude_markers = ['busday', 'buffer']
+
 
 def get_modules():
-    # set defaults
-    try:
-        # import the hand-built VisTrails modules
-        module_list = import_dict['import_modules']
-        pymods = [importlib.import_module(module_name, module_path)
-                  for module_path, mod_lst in six.iteritems(module_list)
-                  for module_name in mod_lst]
-        # autowrap functions
-        func_list = import_dict['autowrap_func']
-        vtfuncs = [wrap_lib.wrap_function(**func_dict)
-                   for func_dict in func_list]
-        # autowrap classes
-        # class_list = import_dict['autowrap_classes']
-        # vtclasses = [wrap_lib.wrap_function(**func_dict)
-        #              for func_dict in class_list]
-    except ImportError as ie:
-        msg = ('importing {0} failed\nOriginal Error: {1}'
-               ''.format(module_name, module_path, ie))
-        print(msg)
-        logging.error(msg)
-        six.reraise(*sys.exc_info())
-    except AutowrapError as ae:
-        msg = ('autowrapping {0} failed\nOriginal Error: {1}'
-               ''.format(func_dict, ae))
-        print(msg)
-        logging.error(msg)
-        six.reraise(*sys.exc_info())
+
+    # autowrap classes
+    # class_list = import_dict['autowrap_classes']
+    # vtclasses = [wrap_lib.wrap_function(**func_dict)
+    #              for func_dict in class_list]
+
+    # import the hand-built VisTrails modules
+    module_list = import_dict['import_modules']
+    pymods = [importlib.import_module(module_name, module_path)
+              for module_path, mod_lst in six.iteritems(module_list)
+              for module_name in mod_lst]
 
     vtmods = [vtmod for mod in pymods for vtmod in mod.vistrails_modules()]
 
-    all_mods = vtmods + vtfuncs  # + vtclasses
+    vtfuncs = []
+    mod_targets = ['numpy',
+                   'numpy.fft',
+                   'numpy.polynomial',
+                   'numpy.random',
+                   'scipy',
+                   'scipy.cluster',
+                   'scipy.fftpack',
+                   'scipy.integrate',
+                   'scipy.interpolate',
+                   'scipy.io',
+                   'scipy.linalg',
+                   'scipy.misc',
+                   'scipy.ndimage',
+                   'scipy.odr',
+                   'scipy.optimize',
+                   'scipy.signal',
+                   'scipy.sparse',
+                   'scipy.spatial',
+                   'scipy.special',
+                   'scipy.stats',
+                   'skxray.calibration',
+                   'skxray.core',
+                   'skxray.recip',
+                   'skxray.io.binary',
+                   'skxray.api.diffraction',
+                   'vttools.to_wrap.fitting',
+                   ]
+
+    for mod_name in mod_targets:
+        print('=' * 25)
+        print('starting module {}'.format(mod_name))
+        print('=' * 25)
+        mod_specs = scrape.scrape_module(mod_name,
+                                         black_list=_black_list,
+                                         exclude_markers=_exclude_markers)
+        for ftw, spec_dict in six.iteritems(mod_specs):
+            try:
+                tmp = wrap_lib.wrap_function(**spec_dict)
+                vtfuncs.append(tmp)
+            except Exception as e:
+                logger.warn("%s failed wrapping on %s.%s",
+                        e, mod_name, ftw)
+
+    all_mods = vtmods + vtfuncs
     if len(all_mods) != len(set(all_mods)):
         raise ValueError('Some modules have been imported multiple times.\n'
                          'Full list: {0}'

@@ -34,18 +34,18 @@
 ########################################################################
 from __future__ import (absolute_import, division, print_function,
                         )
+import enaml
+
 import six
-from bubblegum.qt_widgets import query_widget
+
 from logging import Handler
 from vistrails import api
 from vistrails.core.modules.vistrails_module import Module, ModuleSettings
 from vistrails.core.modules.config import IPort, OPort
-from .broker import search_keys_dict
 from .broker import search
 import numpy as np
 from metadataStore.utilities.utility import get_data_keys
-import enaml
-from enaml.qt.qt_application import QtApplication
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,8 @@ def add_to_canvas(query_dict, unique_query_dict, single_result):
     mod_dict = api.add_module(0, -200, 'org.vistrails.vistrails.NSLS2',
                               'CalibrationParameters', 'broker')
     # connect the broker to the dict
-    api.add_connection(mod_broker.id, 'query_result', mod_dict.id, 'run_header')
+    api.add_connection(mod_broker.id, 'query_result',
+                       mod_dict.id, 'run_header')
 
     # get the datakeys from the run header
     data_keys = get_data_keys(single_result)
@@ -315,7 +316,8 @@ class Crop2D(Module):
               label='pixel coordinate of the row of the bottom right corner',
               signature='basic:Integer'),
         IPort(name='bottom_right_column',
-              label='pixel coordinate of the column of the bottom right corner',
+              label=('pixel coordinate of the column of the ' +
+                     'bottom right corner'),
               signature='basic:Integer'),
     ]
     _output_ports = [

@@ -55,18 +55,8 @@ autowrap_func:
 - func_name: convolve
   module_path: numpy
   namespace: numpy
-# FITTING
-- func_name: gaussian_model
-  module_path: vttools.to_wrap.fitting
-  namespace: fitting
-- func_name: lorentzian_model
-  module_path: vttools.to_wrap.fitting
-  namespace: fitting
-- func_name: lorentzian2_model
-  module_path: vttools.to_wrap.fitting
-  namespace: fitting
-- func_name: quadratic_model
-  module_path: vttools.to_wrap.fitting
+- func_name: gaussian_fit
+  module_path: nsls2.fitting.model.physics_model
   namespace: fitting
 - func_name: fit_engine
   module_path: vttools.to_wrap.fitting
@@ -84,9 +74,6 @@ autowrap_func:
 - func_name: estimate_d_blind
   module_path: skxray.calibration
   namespace: calibration
-#- func_name: find_ring_center_acorr_iD
-#  module_path: skxray.image
-#  namespace: image
 
 
 #- {func_name: emission_line_search, module_path: skxray.constants,  namespace: core, add_input_dict: true}
