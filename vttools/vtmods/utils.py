@@ -44,7 +44,7 @@ from vistrails.core.modules.vistrails_module import Module, ModuleSettings
 from vistrails.core.modules.config import IPort, OPort
 from .broker import search
 import numpy as np
-from metadataStore.utilities.utility import get_data_keys
+#from metadataStore.utilities.utility import get_data_keys
 
 import logging
 logger = logging.getLogger(__name__)
@@ -73,8 +73,12 @@ def add_to_canvas(query_dict, unique_query_dict, single_result):
     api.add_connection(mod_broker.id, 'query_result',
                        mod_dict.id, 'run_header')
 
+    # Commenting out following part due to
+    #  metadataStore.utilities.utility import get_data_keys
+    #  is no longer there
+    
     # get the datakeys from the run header
-    data_keys = get_data_keys(single_result)
+    """data_keys = get_data_keys(single_result)
     if 'time' in data_keys:
         data_keys.remove('time')
     horz_offset = 250
@@ -99,7 +103,7 @@ def add_to_canvas(query_dict, unique_query_dict, single_result):
 
         # connect the broker result to the listify module
         api.add_connection(mod_broker.id, 'query_result',
-                           mod_listify.id, 'run_header')
+                           mod_listify.id, 'run_header')"""
 
 
 def gen_unique_id(run_header):
