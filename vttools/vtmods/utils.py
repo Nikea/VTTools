@@ -160,7 +160,11 @@ def search_databroker(search_dict):
 #                                             unique_id_func=gen_unique_id)
 
 
-from bubblegum.xrf.model.xrf_model import XRF
+# commenting out following part for following reason
+# Get the CSX servers up and running #18 (issue 18 in Nikea/internal)
+# install NSLS2 metapackage into clean conda environment #20
+#  (issue 20 in Nikea/internal)
+"""from bubblegum.xrf.model.xrf_model import XRF
 with enaml.imports():
     from bubblegum.xrf.view.xrf_view import XrfGui
 
@@ -168,9 +172,9 @@ xrf_view = XrfGui()
 xrf_view.xrf_model = XRF()
 
 def setup_bnl_menu():
-    """
-    Creates and hooks up a BNL specific menu in the main window
-    """
+"""
+#Creates and hooks up a BNL specific menu in the main window
+"""
     bw = api.get_builder_window()
     # grab the menu bar
     menu_bar = bw.menuBar()
@@ -184,7 +188,7 @@ def setup_bnl_menu():
         xrf_view.show()
 
 
-    bnl_menu.addAction("demo", foo)
+    bnl_menu.addAction("demo", foo)"""
 
 
 class ForwardingHandler(Handler):
@@ -352,5 +356,5 @@ class Crop2D(Module):
 
 
 def vistrails_modules():
-    setup_bnl_menu()
+    #setup_bnl_menu()
     return [Flatten, Average, SwapAxes, Crop2D]
