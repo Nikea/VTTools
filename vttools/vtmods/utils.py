@@ -354,10 +354,7 @@ class Crop2D(Module):
 
         self.set_output('bin_mask', im)
 
-# commenting out following part for following reason
-# Get the CSX servers up and running #18 (issue 18 in Nikea/internal)
-# install NSLS2 metapackage into clean conda environment #20
-#  (issue 20 in Nikea/internal)
-#def vistrails_modules():
-    #setup_bnl_menu()
-    #return [Flatten, Average, SwapAxes, Crop2D]
+def vistrails_modules():
+    ## commenting out following  line same issue as xrf_view
+    # setup_bnl_menu()
+    return [Flatten, Average, SwapAxes, Crop2D]
