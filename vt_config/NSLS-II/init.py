@@ -106,8 +106,8 @@ def get_modules():
                    'skxray.core',
                    'skxray.recip',
                    'skxray.io.binary',
-                   'skxray.io.save_powder_output'
-                   'skxray.io.gsas_file_reader'
+                   'skxray.io.save_powder_output',
+                   'skxray.io.gsas_file_reader',
                    'skxray.api.diffraction',
                    'vttools.to_wrap.fitting',
                    ]
