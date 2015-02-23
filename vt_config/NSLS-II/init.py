@@ -105,6 +105,7 @@ def get_modules():
                    'skxray.calibration',
                    'skxray.core',
                    'skxray.recip',
+                   'skxray.diff_roi_choice',
                    'skxray.io.binary',
                    'skxray.io.save_powder_output',
                    'skxray.io.gsas_file_reader',
