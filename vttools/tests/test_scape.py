@@ -46,7 +46,8 @@ from vttools import scrape
 from numpy.testing import assert_string_equal, assert_equal, assert_raises
 from nose.tools import assert_true
 
-from scrape_test_source import eat_porridge, porridge_for_the_bears, has_defaults
+from scrape_test_source import (eat_porridge, porridge_for_the_bears,
+                                has_defaults)
 
 
 def test_scrape():
