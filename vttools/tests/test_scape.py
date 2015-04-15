@@ -352,7 +352,9 @@ def test_module_scrape():
              ({'exclude_private': False}, {}, ['_private']))
 
     for pre, post, tst_lst in tests:
-        yield _mod_scrape_test_helper, 'scrape_test_source', pre, post, tst_lst
+        yield (_mod_scrape_test_helper,
+               'vttools.tests.scrape_test_source',
+               pre, post, tst_lst)
 
 
 def _mod_scrape_test_helper(mod_name, kwargs_with, kwargs_without,
