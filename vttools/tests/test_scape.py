@@ -46,7 +46,8 @@ from vttools import scrape
 from numpy.testing import assert_string_equal, assert_equal, assert_raises
 from nose.tools import assert_true
 
-from scrape_test_source import eat_porridge, porridge_for_the_bears, has_defaults
+from vttools.tests.scrape_test_source import (
+    eat_porridge, porridge_for_the_bears, has_defaults)
 
 
 def test_scrape():
@@ -351,7 +352,9 @@ def test_module_scrape():
              ({'exclude_private': False}, {}, ['_private']))
 
     for pre, post, tst_lst in tests:
-        yield _mod_scrape_test_helper, 'scrape_test_source', pre, post, tst_lst
+        yield (_mod_scrape_test_helper,
+               'vttools.tests.scrape_test_source',
+               pre, post, tst_lst)
 
 
 def _mod_scrape_test_helper(mod_name, kwargs_with, kwargs_without,
