@@ -112,6 +112,7 @@ def get_modules():
                    'skxray.io.gsas_file_reader',
                    'skxray.api.diffraction',
                    'vttools.to_wrap.fitting',
+				   'tomopy',
                    ]
 
     for mod_name in mod_targets:
