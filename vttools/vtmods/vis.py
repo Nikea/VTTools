@@ -44,7 +44,7 @@ from vistrails.core.modules.vistrails_module import (Module, ModuleSettings,
 from vistrails.core.modules.config import IPort, OPort
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
-from bubblegum.qt_widgets import (CrossSectionMainWindow, Stack1DMainWindow,
+from xray_vision.qt_widgets import (CrossSectionMainWindow, Stack1DMainWindow,
                                   displaydict)
 import numpy as np
 from vistrails.gui.modules.constant_configuration import ConstantEnumWidgetBase
