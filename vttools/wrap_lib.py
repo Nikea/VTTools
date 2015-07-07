@@ -138,7 +138,7 @@ def gen_module(input_ports, output_ports, docstring,
         ret = library_func(**params_dict)
         if len(output_ports) == 1:
             self.set_output(output_ports[0].name, ret)
-        else:
+        elif ret: # only when output_ports is not empty
             for (out_port, ret_val) in zip(output_ports, ret):
                 self.set_output(out_port.name, ret_val)
 
