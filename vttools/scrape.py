@@ -611,7 +611,7 @@ def define_input_ports(docstring, func, short_description_word_count=4):
     return input_ports
 
 
-def define_output_ports(docstring, short_description_word_count=4, ret=None):
+def define_output_ports(docstring, short_description_word_count=4):
     """
     Turn the 'Returns' fields into VisTrails output ports
 
