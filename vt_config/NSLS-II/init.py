@@ -102,16 +102,17 @@ def get_modules():
                    'scipy.spatial',
                    'scipy.special',
                    'scipy.stats',
-                   'skxray.calibration',
-                   'skxray.correlation',
+                   'skxray.core.arithmetic',
+                   'skxray.core.calibration',
+                   'skxray.core.correlation',
                    'skxray.core',
-                   'skxray.recip',
-                   'skxray.roi',
+                   'skxray.core.recip',
+                   'skxray.core.roi',
                    'skxray.io.binary',
                    'skxray.io.save_powder_output',
                    'skxray.io.gsas_file_reader',
-                   'skxray.api.diffraction',
-                   'vttools.to_wrap.fitting',
+                   'skxray.diffraction',
+                   #'vttools.to_wrap.fitting',
                    ]
 
     for mod_name in mod_targets:

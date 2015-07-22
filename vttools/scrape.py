@@ -44,7 +44,7 @@ from collections import OrderedDict
 from numpydoc.docscrape import FunctionDoc, ClassDoc
 import numpy
 
-from skxray.core import verbosedict
+from skxray.core.utils import verbosedict
 import abc
 
 logger = logging.getLogger(__name__)
