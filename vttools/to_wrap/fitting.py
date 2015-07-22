@@ -33,10 +33,9 @@
 # POSSIBILITY OF SUCH DAMAGE.                                          #
 ########################################################################
 import sys
-from skxray.fitting.api import (QuadraticModel, GaussianModel,
-                                LorentzianModel, Lorentzian2Model,
-                                ExpressionModel)
-
+from lmfit.models import (QuadraticModel, GaussianModel, LorentzianModel,
+                          ExpressionModel)
+from skxray.core.fitting.models import Lorentzian2Model
 import logging
 logger = logging.getLogger(__name__)
 
