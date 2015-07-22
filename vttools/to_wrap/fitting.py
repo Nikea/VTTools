@@ -35,7 +35,7 @@
 import sys
 from lmfit.models import (QuadraticModel, GaussianModel, LorentzianModel,
                           ExpressionModel)
-from skxray.fitting.models import Lorentzian2Model
+from skxray.core.fitting.models import Lorentzian2Model
 import logging
 logger = logging.getLogger(__name__)
 
