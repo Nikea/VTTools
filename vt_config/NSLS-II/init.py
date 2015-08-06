@@ -47,6 +47,7 @@ import collections
 from vttools import wrap_lib, scrape
 from vttools.vtmods.import_lists import load_config
 
+from vttools.to_wrap import image
 logger = logging.getLogger(__name__)
 
 # get modules to import
@@ -113,6 +114,14 @@ def get_modules():
                    'skxray.io.gsas_file_reader',
                    'skxray.diffraction',
                    'vttools.to_wrap.fitting',
+                   'vttools.to_wrap.image.filtering',
+                   'vttools.to_wrap.image.histogram',
+                   'vttools.to_wrap.image.logic',
+                   'vttools.to_wrap.image.math',
+                   'vttools.to_wrap.image.morphology',
+                   'vttools.to_wrap.image.registration',
+                   'vttools.to_wrap.image.thresholding',
+                   'vttools.to_wrap.image.transformation',
                    ]
 
     for mod_name in mod_targets:
