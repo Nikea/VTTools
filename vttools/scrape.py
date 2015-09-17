@@ -628,9 +628,16 @@ def define_output_ports(docstring, short_description_word_count=4):
     """
 
     output_ports = []
+    idx = 0
 
     # now look at the return Returns section
     for (the_name, the_type, the_description) in docstring['Returns']:
+        # when the return parameter has no name but only type and description
+        if the_type == '':
+            the_type = the_name
+            the_name = 'def_output' + str(idx)
+            idx += 1
+
         base_type, is_optional = _type_optional(the_type)
         if is_optional:
             continue

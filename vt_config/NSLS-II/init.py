@@ -122,6 +122,7 @@ def get_modules():
                    'vttools.to_wrap.image.registration',
                    'vttools.to_wrap.image.thresholding',
                    'vttools.to_wrap.image.transformation',
+				   'tomopy',
                    ]
 
     for mod_name in mod_targets:
