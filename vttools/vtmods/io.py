@@ -41,6 +41,8 @@ from vistrails.core.modules.config import IPort, OPort
 from tifffile import imread
 from skxray.io.binary import read_binary
 import numpy as np
+import os
+import glob
 
 import logging
 logger = logging.getLogger(__name__)
@@ -82,6 +84,54 @@ class ReadTiff(Module):
             data_list.append(imread(file))
         self.set_output("data", data_list)
 
+class FindData(Module):
+    _settings = ModuleSettings(namespace="io")
+
+    _input_ports = [
+        IPort(name="file name", label="file name and extension to search for",
+              signature="basic:String"),
+        IPort(name="seed path", label="path corresponding to the "
+                                      "search starting point. Defaults to "
+                                      "the user's home directory.",
+              default="~", signature="basic:String"),
+    ]
+
+    _output_ports = [
+        OPort(name="file path", signature="basic:String")
+    ]
+
+    def compute(self):
+        seed_path = self.get_input("seed path")
+        file_name = self.get_input("file name")
+        print file_name
+        existing_files = []
+        #existing_files = [y for dir_tree in os.walk(os.path.expanduser("~/dev/my_src/")) for y in glob(os.path.join(x[0], 'data.h5'))]
+        for dir_tree in os.walk(os.path.expanduser(seed_path)):
+            if file_name in dir_tree[2]:
+                existing_files.append(os.path.join(dir_tree[0], file_name))
+        print existing_files
+
+        for path in existing_files:
+            if 'Demos' in path:
+                file_path = path
+        print file_path
+
+        #existing_file_list = [files for folder in os.walk(os.path.expanduser(
+        #    seed_path)) for file in glob(os.path.join(folder[0], fname))]
+        #file_path = None
+        #print existing_file_list
+        #for path in existing_file_list:
+        #    if 'Demos' in path:
+        #        file_path = path
+        #if file_path == None:
+        #    if len(existing_file_list) != 0:
+        #        file_path = existing_file_list[0]
+        #    else:
+        #        raise ValueError("File not found.")
+        #print file_path
+        self.set_output("file path", file_path)
+
+
 
 def vistrails_modules():
-    return [ReadTiff, ReadNumpy]
+    return [ReadTiff, ReadNumpy, FindData]
