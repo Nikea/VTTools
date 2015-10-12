@@ -105,7 +105,7 @@ class FindData(Module):
         file_name = self.get_input("file name")
         print file_name
         existing_files = []
-        #existing_files = [y for dir_tree in os.walk(os.path.expanduser("~/dev/my_src/")) for y in glob(os.path.join(x[0], 'data.h5'))]
+
         for dir_tree in os.walk(os.path.expanduser(seed_path)):
             if file_name in dir_tree[2]:
                 existing_files.append(os.path.join(dir_tree[0], file_name))
@@ -114,21 +114,7 @@ class FindData(Module):
         for path in existing_files:
             if 'Demos' in path:
                 file_path = path
-        print file_path
 
-        #existing_file_list = [files for folder in os.walk(os.path.expanduser(
-        #    seed_path)) for file in glob(os.path.join(folder[0], fname))]
-        #file_path = None
-        #print existing_file_list
-        #for path in existing_file_list:
-        #    if 'Demos' in path:
-        #        file_path = path
-        #if file_path == None:
-        #    if len(existing_file_list) != 0:
-        #        file_path = existing_file_list[0]
-        #    else:
-        #        raise ValueError("File not found.")
-        #print file_path
         self.set_output("file path", file_path)
 
 
