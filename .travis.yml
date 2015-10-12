@@ -14,8 +14,7 @@ install:
   - export GIT_FULL_HASH=`git rev-parse HEAD`
   - conda update conda --yes
   - conda config --set always_yes true
-  - conda create -n testenv pip nose python=$TRAVIS_PYTHON_VERSION lmfit \
-    numpy scipy six numpydoc pyyaml
+  - conda create -n testenv pip nose python=$TRAVIS_PYTHON_VERSION lmfit numpy scipy six numpydoc pyyaml
   - source activate testenv
 #  - conda install vistrails --yes
   - cd ../
