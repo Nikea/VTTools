@@ -13,13 +13,14 @@ before_install:
 install:
   - export GIT_FULL_HASH=`git rev-parse HEAD`
   - conda update conda --yes
-  - conda create -n testenv --yes pip nose python=$TRAVIS_PYTHON_VERSION lmfit numpy scipy six
+  - conda config --set always_yes true
+  - conda create -n testenv pip nose python=$TRAVIS_PYTHON_VERSION lmfit \
+    numpy scipy six numpydoc pyyaml
   - source activate testenv
-  - conda install numpydoc --yes
 #  - conda install vistrails --yes
   - cd ../
-  - git clone https://github.com/Nikea/NSLS2.git
-  - cd NSLS2
+  - git clone https://github.com/Nikea/scikit-xray.git
+  - cd scikit-xray
   - python setup.py install
   - cd ../
   - git clone https://github.com/vistrails/vistrails.git
