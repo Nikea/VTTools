@@ -47,6 +47,7 @@ import collections
 from vttools import wrap_lib, scrape
 from vttools.vtmods.import_lists import load_config
 
+# unrelated so commented out
 #from vttools.to_wrap import image
 logger = logging.getLogger(__name__)
 
